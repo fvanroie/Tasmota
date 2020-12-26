@@ -20,12 +20,11 @@
 //#if defined(USE_I2C) || defined(USE_SPI)
 //#ifdef USE_DISPLAY
 
-#define XDRV_90       90
+#define XDRV_90 90
 
 #ifndef __cplusplus
 #define __cplusplus
 #endif
-
 
 #include "Arduino.h"
 #include <lvgl.h>
@@ -67,13 +66,12 @@ const uint8_t DISPLAY_LOG_ROWS = 32;           // Number of lines in display log
 #define D_CMND_HASP_JSONL "Jsonl"
 #define D_CMND_HASP_CALIBRATE "Calibrate"
 
-const char kHaspCommands[] PROGMEM = D_PRFX_HASP "|"  // Prefix
-  "|" D_CMND_HASP_PAGE "|" D_CMND_HASP_CLEARPAGE "|" D_CMND_HASP_DIM "|" D_CMND_HASP_LIGHT "|" D_CMND_HASP_WAKEUP "|"
-  D_CMND_HASP_JSON "|" D_CMND_HASP_JSONL "|" D_CMND_HASP_CALIBRATE ;
+const char kHaspCommands[] PROGMEM = D_PRFX_HASP "|" // Prefix
+                                                 "|" D_CMND_HASP_PAGE "|" D_CMND_HASP_CLEARPAGE "|" D_CMND_HASP_DIM "|" D_CMND_HASP_LIGHT "|" D_CMND_HASP_WAKEUP "|" D_CMND_HASP_JSON "|" D_CMND_HASP_JSONL "|" D_CMND_HASP_CALIBRATE;
 
-void (* const HaspCommand[])(void) PROGMEM = {
-  &CmndHasp, &cmndHaspPage, &cmndHaspClearPage, &cmndHaspDim, &cmndHaspLight, &cmndHaspWakeUp,
-  &cmndHaspJson, &cmndHaspJsonl, &cmndHaspCalibrate };
+void (*const HaspCommand[])(void) PROGMEM = {
+    &CmndHasp, &cmndHaspPage, &cmndHaspClearPage, &cmndHaspDim, &cmndHaspLight, &cmndHaspWakeUp,
+    &cmndHaspJson, &cmndHaspJsonl, &cmndHaspCalibrate};
 
 /*char *dsp_str;
 
@@ -110,17 +108,18 @@ uint8_t disp_screen_buffer_cols = 0;
 uint8_t disp_screen_buffer_rows = 0;
 bool disp_subscribed = false;
 */
-#endif  // USE_DISPLAY_MODES1TO5
+#endif // USE_DISPLAY_MODES1TO5
 
 /*********************************************************************************************/
 
 void HaspInit(uint8_t mode)
 {
-    // dsp_init = mode;
-    // XdspCall(FUNC_DISPLAY_INIT);
-    if (mode==0) {
-      //haspSetup();
-    }
+  // dsp_init = mode;
+  // XdspCall(FUNC_DISPLAY_INIT);
+  if (mode == 0)
+  {
+    //haspSetup();
+  }
 }
 
 void HaspClearPage(void)
@@ -128,16 +127,21 @@ void HaspClearPage(void)
   XdspCall(FUNC_DISPLAY_CLEAR);
 }
 
-void HaspShow(bool json) {
-  if (json) {
+void HaspShow(bool json)
+{
+  if (json)
+  {
 #ifdef USE_DOMOTICZ
-    if (0 == TasmotaGlobal.tele_period) {
+    if (0 == TasmotaGlobal.tele_period)
+    {
       //Vl53l1Every_Second();
     }
-#endif  // USE_DOMOTICZ
+#endif // USE_DOMOTICZ
     ResponseAppend_P(PSTR(",\"HASP\":{\"page\":%d}"), haspGetPage());
 #ifdef USE_WEBSERVER
-  } else {
+  }
+  else
+  {
     WSContentSend_PD(PSTR("HASP page %d"), haspGetPage());
 #endif
   }
@@ -207,19 +211,19 @@ void TempDrawFrame(void)
 
 void TempSetSize(uint8_t size)
 {
-  Settings.display_size = size &3;
+  Settings.display_size = size & 3;
   XdspCall(FUNC_DISPLAY_TEXT_SIZE);
 }
 
 void TempSetFont(uint8_t font)
 {
-  Settings.display_font = font &3;
+  Settings.display_font = font & 3;
   XdspCall(FUNC_DISPLAY_FONT_SIZE);
 }
 
 void TempSetRotation(uint8_t rotation)
 {
-  Settings.display_rotate = rotation &3;
+  Settings.display_rotate = rotation & 3;
   XdspCall(FUNC_DISPLAY_ROTATION);
 }
 
@@ -354,7 +358,7 @@ uint32_t decode_te(char *line) {
 
 /*-------------------------------------------------------------------------------------------*/
 
-#define DISPLAY_BUFFER_COLS    128          // Max number of characters in linebuf
+#define DISPLAY_BUFFER_COLS 128 // Max number of characters in linebuf
 
 void TempText(void)
 {
@@ -373,210 +377,274 @@ void TempText(void)
   char *cp = XdrvMailbox.data;
 
   memset(linebuf, ' ', sizeof(linebuf));
-  linebuf[sizeof(linebuf)-1] = 0;
+  linebuf[sizeof(linebuf) - 1] = 0;
   *dp = 0;
 
-  while (*cp) {
-    if (!escape) {
+  while (*cp)
+  {
+    if (!escape)
+    {
       // check for escape
-      if (*cp == '[') {
+      if (*cp == '[')
+      {
         escape = 1;
         cp++;
         // if string in buffer print it
-        if ((uint32_t)dp - (uint32_t)linebuf) {
-          if (!fill) { *dp = 0; }
-          if (col > 0 && lin > 0) {
+        if ((uint32_t)dp - (uint32_t)linebuf)
+        {
+          if (!fill)
+          {
+            *dp = 0;
+          }
+          if (col > 0 && lin > 0)
+          {
             // use col and lin
-            if (!renderer) DisplayDrawStringAt(col, lin, linebuf, fg_color, 1);
-            else renderer->DrawStringAt(col, lin, linebuf, fg_color, 1);
-          } else {
+            if (!renderer)
+              DisplayDrawStringAt(col, lin, linebuf, fg_color, 1);
+            else
+              renderer->DrawStringAt(col, lin, linebuf, fg_color, 1);
+          }
+          else
+          {
             // use disp_xpos, disp_ypos
-            if (!renderer) DisplayDrawStringAt(disp_xpos, disp_ypos, linebuf, fg_color, 0);
-            else renderer->DrawStringAt(disp_xpos, disp_ypos, linebuf, fg_color, 0);
+            if (!renderer)
+              DisplayDrawStringAt(disp_xpos, disp_ypos, linebuf, fg_color, 0);
+            else
+              renderer->DrawStringAt(disp_xpos, disp_ypos, linebuf, fg_color, 0);
           }
           memset(linebuf, ' ', sizeof(linebuf));
-          linebuf[sizeof(linebuf)-1] = 0;
+          linebuf[sizeof(linebuf) - 1] = 0;
           dp = linebuf;
         }
-      } else {
-        // copy chars
-        if (dp < (linebuf + DISPLAY_BUFFER_COLS)) { *dp++ = *cp++; }
       }
-    } else {
+      else
+      {
+        // copy chars
+        if (dp < (linebuf + DISPLAY_BUFFER_COLS))
+        {
+          *dp++ = *cp++;
+        }
+      }
+    }
+    else
+    {
       // check escapes
-      if (*cp == ']') {
+      if (*cp == ']')
+      {
         escape = 0;
         cp++;
-      } else {
+      }
+      else
+      {
         // analyze escapes
-        switch (*cp++) {
-          case 'z':
-            // clear display
-            if (!renderer) DisplayClear();
-            else renderer->fillScreen(bg_color);
-            disp_xpos = 0;
-            disp_ypos = 0;
-            col = 0;
-            lin = 0;
-            break;
-          case 'i':
-            // init display with partial update
-            DisplayInit(DISPLAY_INIT_PARTIAL);
-            break;
-          case 'I':
-            // init display with full refresh
-            DisplayInit(DISPLAY_INIT_FULL);
-            break;
-          case 'o':
-            DisplayOnOff(0);
-            break;
-          case 'O':
-            DisplayOnOff(1);
-            break;
-          case 'x':
-            // set disp_xpos
-            var = atoiv(cp, &disp_xpos);
-            cp += var;
-            break;
-          case 'y':
-            // set disp_ypos
-            var = atoiv(cp, &disp_ypos);
-            cp += var;
-            break;
-          case 'l':
-            // text line lxx
-            var = atoiv(cp, &lin);
-            cp += var;
-            //display.setCursor(display.getCursorX(),(lin-1)*font_y*txtsize);
-            break;
-          case 'c':
-            // text column cxx
-            var = atoiv(cp, &col);
-            cp += var;
-            //display.setCursor((col-1)*font_x*txtsize,display.getCursorY());
-            break;
-          case 'C':
-            // text color cxx
-            if (*cp=='i') {
-              // color index 0-18
-              cp++;
-              var = atoiv(cp, &temp);
-              if (renderer) ftemp=renderer->GetColorFromIndex(temp);
-            } else {
-              // float because it must handle unsigned 16 bit
-              var = fatoiv(cp,&ftemp);
-            }
-            fg_color=ftemp;
-            cp += var;
-            if (renderer) renderer->setTextColor(fg_color,bg_color);
-            break;
-          case 'B':
-            // bg color Bxx
-            if (*cp=='i') {
-              // color index 0-18
-              cp++;
-              var = atoiv(cp, &temp);
-              if (renderer) ftemp=renderer->GetColorFromIndex(temp);
-            } else {
-              var = fatoiv(cp,&ftemp);
-            }
-            bg_color=ftemp;
-            cp += var;
-            if (renderer) renderer->setTextColor(fg_color,bg_color);
-            break;
-          case 'p':
-            // pad field with spaces fxx
-            var = atoiv(cp, &fill);
-            cp += var;
-            linebuf[fill] = 0;
-            break;
+        switch (*cp++)
+        {
+        case 'z':
+          // clear display
+          if (!renderer)
+            DisplayClear();
+          else
+            renderer->fillScreen(bg_color);
+          disp_xpos = 0;
+          disp_ypos = 0;
+          col = 0;
+          lin = 0;
+          break;
+        case 'i':
+          // init display with partial update
+          DisplayInit(DISPLAY_INIT_PARTIAL);
+          break;
+        case 'I':
+          // init display with full refresh
+          DisplayInit(DISPLAY_INIT_FULL);
+          break;
+        case 'o':
+          DisplayOnOff(0);
+          break;
+        case 'O':
+          DisplayOnOff(1);
+          break;
+        case 'x':
+          // set disp_xpos
+          var = atoiv(cp, &disp_xpos);
+          cp += var;
+          break;
+        case 'y':
+          // set disp_ypos
+          var = atoiv(cp, &disp_ypos);
+          cp += var;
+          break;
+        case 'l':
+          // text line lxx
+          var = atoiv(cp, &lin);
+          cp += var;
+          //display.setCursor(display.getCursorX(),(lin-1)*font_y*txtsize);
+          break;
+        case 'c':
+          // text column cxx
+          var = atoiv(cp, &col);
+          cp += var;
+          //display.setCursor((col-1)*font_x*txtsize,display.getCursorY());
+          break;
+        case 'C':
+          // text color cxx
+          if (*cp == 'i')
+          {
+            // color index 0-18
+            cp++;
+            var = atoiv(cp, &temp);
+            if (renderer)
+              ftemp = renderer->GetColorFromIndex(temp);
+          }
+          else
+          {
+            // float because it must handle unsigned 16 bit
+            var = fatoiv(cp, &ftemp);
+          }
+          fg_color = ftemp;
+          cp += var;
+          if (renderer)
+            renderer->setTextColor(fg_color, bg_color);
+          break;
+        case 'B':
+          // bg color Bxx
+          if (*cp == 'i')
+          {
+            // color index 0-18
+            cp++;
+            var = atoiv(cp, &temp);
+            if (renderer)
+              ftemp = renderer->GetColorFromIndex(temp);
+          }
+          else
+          {
+            var = fatoiv(cp, &ftemp);
+          }
+          bg_color = ftemp;
+          cp += var;
+          if (renderer)
+            renderer->setTextColor(fg_color, bg_color);
+          break;
+        case 'p':
+          // pad field with spaces fxx
+          var = atoiv(cp, &fill);
+          cp += var;
+          linebuf[fill] = 0;
+          break;
 #if defined(USE_SCRIPT_FATFS) && defined(USE_SCRIPT)
-          case 'P':
-            { char *ep=strchr(cp,':');
-             if (ep) {
-               *ep=0;
-               ep++;
-               Draw_RGB_Bitmap(cp,disp_xpos,disp_ypos);
-               cp=ep;
-             }
-            }
-            break;
+        case 'P':
+        {
+          char *ep = strchr(cp, ':');
+          if (ep)
+          {
+            *ep = 0;
+            ep++;
+            Draw_RGB_Bitmap(cp, disp_xpos, disp_ypos);
+            cp = ep;
+          }
+        }
+        break;
 #endif // USE_SCRIPT_FATFS
-          case 'h':
-            // hor line to
-            var = atoiv(cp, &temp);
-            cp += var;
-            if (temp < 0) {
-              if (renderer) renderer->writeFastHLine(disp_xpos + temp, disp_ypos, -temp, fg_color);
-              else DisplayDrawHLine(disp_xpos + temp, disp_ypos, -temp, fg_color);
-            } else {
-              if (renderer) renderer->writeFastHLine(disp_xpos, disp_ypos, temp, fg_color);
-              else DisplayDrawHLine(disp_xpos, disp_ypos, temp, fg_color);
-            }
-            disp_xpos += temp;
-            break;
-          case 'v':
-            // vert line to
-            var = atoiv(cp, &temp);
-            cp += var;
-            if (temp < 0) {
-              if (renderer) renderer->writeFastVLine(disp_xpos, disp_ypos + temp, -temp, fg_color);
-              else DisplayDrawVLine(disp_xpos, disp_ypos + temp, -temp, fg_color);
-            } else {
-              if (renderer) renderer->writeFastVLine(disp_xpos, disp_ypos, temp, fg_color);
-              else DisplayDrawVLine(disp_xpos, disp_ypos, temp, fg_color);
-            }
-            disp_ypos += temp;
-            break;
-          case 'L':
-            // any line to
-            var = atoiv(cp, &temp);
-            cp += var;
-            cp++;
-            var = atoiv(cp, &temp1);
-            cp += var;
-            if (renderer) renderer->writeLine(disp_xpos, disp_ypos, temp, temp1, fg_color);
-            else DisplayDrawLine(disp_xpos, disp_ypos, temp, temp1, fg_color);
-            disp_xpos += temp;
-            disp_ypos += temp1;
-            break;
-          case 'k':
-            // circle
-            var = atoiv(cp, &temp);
-            cp += var;
-            if (renderer) renderer->drawCircle(disp_xpos, disp_ypos, temp, fg_color);
-            else DisplayDrawCircle(disp_xpos, disp_ypos, temp, fg_color);
-            break;
-          case 'K':
-            // filled circle
-            var = atoiv(cp, &temp);
-            cp += var;
-            if (renderer) renderer->fillCircle(disp_xpos, disp_ypos, temp, fg_color);
-            else DisplayDrawFilledCircle(disp_xpos, disp_ypos, temp, fg_color);
-            break;
-          case 'r':
-            // rectangle
-            var = atoiv(cp, &temp);
-            cp += var;
-            cp++;
-            var = atoiv(cp, &temp1);
-            cp += var;
-            if (renderer) renderer->drawRect(disp_xpos, disp_ypos, temp, temp1, fg_color);
-            else DisplayDrawRectangle(disp_xpos, disp_ypos, temp, temp1, fg_color);
-            break;
-          case 'R':
-            // filled rectangle
-            var = atoiv(cp, &temp);
-            cp += var;
-            cp++;
-            var = atoiv(cp, &temp1);
-            cp += var;
-            if (renderer) renderer->fillRect(disp_xpos, disp_ypos, temp, temp1, fg_color);
-            else DisplayDrawFilledRectangle(disp_xpos, disp_ypos, temp, temp1, fg_color);
-            break;
-          case 'u':
-            // rounded rectangle
-            { int16_t rad;
+        case 'h':
+          // hor line to
+          var = atoiv(cp, &temp);
+          cp += var;
+          if (temp < 0)
+          {
+            if (renderer)
+              renderer->writeFastHLine(disp_xpos + temp, disp_ypos, -temp, fg_color);
+            else
+              DisplayDrawHLine(disp_xpos + temp, disp_ypos, -temp, fg_color);
+          }
+          else
+          {
+            if (renderer)
+              renderer->writeFastHLine(disp_xpos, disp_ypos, temp, fg_color);
+            else
+              DisplayDrawHLine(disp_xpos, disp_ypos, temp, fg_color);
+          }
+          disp_xpos += temp;
+          break;
+        case 'v':
+          // vert line to
+          var = atoiv(cp, &temp);
+          cp += var;
+          if (temp < 0)
+          {
+            if (renderer)
+              renderer->writeFastVLine(disp_xpos, disp_ypos + temp, -temp, fg_color);
+            else
+              DisplayDrawVLine(disp_xpos, disp_ypos + temp, -temp, fg_color);
+          }
+          else
+          {
+            if (renderer)
+              renderer->writeFastVLine(disp_xpos, disp_ypos, temp, fg_color);
+            else
+              DisplayDrawVLine(disp_xpos, disp_ypos, temp, fg_color);
+          }
+          disp_ypos += temp;
+          break;
+        case 'L':
+          // any line to
+          var = atoiv(cp, &temp);
+          cp += var;
+          cp++;
+          var = atoiv(cp, &temp1);
+          cp += var;
+          if (renderer)
+            renderer->writeLine(disp_xpos, disp_ypos, temp, temp1, fg_color);
+          else
+            DisplayDrawLine(disp_xpos, disp_ypos, temp, temp1, fg_color);
+          disp_xpos += temp;
+          disp_ypos += temp1;
+          break;
+        case 'k':
+          // circle
+          var = atoiv(cp, &temp);
+          cp += var;
+          if (renderer)
+            renderer->drawCircle(disp_xpos, disp_ypos, temp, fg_color);
+          else
+            DisplayDrawCircle(disp_xpos, disp_ypos, temp, fg_color);
+          break;
+        case 'K':
+          // filled circle
+          var = atoiv(cp, &temp);
+          cp += var;
+          if (renderer)
+            renderer->fillCircle(disp_xpos, disp_ypos, temp, fg_color);
+          else
+            DisplayDrawFilledCircle(disp_xpos, disp_ypos, temp, fg_color);
+          break;
+        case 'r':
+          // rectangle
+          var = atoiv(cp, &temp);
+          cp += var;
+          cp++;
+          var = atoiv(cp, &temp1);
+          cp += var;
+          if (renderer)
+            renderer->drawRect(disp_xpos, disp_ypos, temp, temp1, fg_color);
+          else
+            DisplayDrawRectangle(disp_xpos, disp_ypos, temp, temp1, fg_color);
+          break;
+        case 'R':
+          // filled rectangle
+          var = atoiv(cp, &temp);
+          cp += var;
+          cp++;
+          var = atoiv(cp, &temp1);
+          cp += var;
+          if (renderer)
+            renderer->fillRect(disp_xpos, disp_ypos, temp, temp1, fg_color);
+          else
+            DisplayDrawFilledRectangle(disp_xpos, disp_ypos, temp, temp1, fg_color);
+          break;
+        case 'u':
+          // rounded rectangle
+          {
+            int16_t rad;
             var = atoiv(cp, &temp);
             cp += var;
             cp++;
@@ -585,13 +653,15 @@ void TempText(void)
             cp++;
             var = atoiv(cp, &rad);
             cp += var;
-            if (renderer) renderer->drawRoundRect(disp_xpos, disp_ypos, temp, temp1, rad, fg_color);
-              //else DisplayDrawFilledRectangle(disp_xpos, disp_ypos, temp, temp1, fg_color);
-            }
-            break;
-          case 'U':
-            // rounded rectangle
-            { int16_t rad;
+            if (renderer)
+              renderer->drawRoundRect(disp_xpos, disp_ypos, temp, temp1, rad, fg_color);
+            //else DisplayDrawFilledRectangle(disp_xpos, disp_ypos, temp, temp1, fg_color);
+          }
+          break;
+        case 'U':
+          // rounded rectangle
+          {
+            int16_t rad;
             var = atoiv(cp, &temp);
             cp += var;
             cp++;
@@ -600,286 +670,348 @@ void TempText(void)
             cp++;
             var = atoiv(cp, &rad);
             cp += var;
-            if (renderer) renderer->fillRoundRect(disp_xpos, disp_ypos, temp, temp1, rad, fg_color);
-                  //else DisplayDrawFilledRectangle(disp_xpos, disp_ypos, temp, temp1, fg_color);
-            }
-            break;
+            if (renderer)
+              renderer->fillRoundRect(disp_xpos, disp_ypos, temp, temp1, rad, fg_color);
+            //else DisplayDrawFilledRectangle(disp_xpos, disp_ypos, temp, temp1, fg_color);
+          }
+          break;
 
-          case 't':
-            if (*cp=='S') {
-              cp++;
-              if (dp < (linebuf + DISPLAY_BUFFER_COLS) -8) {
-                snprintf_P(dp, 9, PSTR("%02d" D_HOUR_MINUTE_SEPARATOR "%02d" D_MINUTE_SECOND_SEPARATOR "%02d"), RtcTime.hour, RtcTime.minute, RtcTime.second);
-                dp += 8;
-              }
-            } else {
-              if (dp < (linebuf + DISPLAY_BUFFER_COLS) -5) {
-                snprintf_P(dp, 6, PSTR("%02d" D_HOUR_MINUTE_SEPARATOR "%02d"), RtcTime.hour, RtcTime.minute);
-                dp += 5;
-              }
-            }
-            break;
-          case 'T': {
-            uint8_t param1 = RtcTime.day_of_month;
-            uint8_t param2 = RtcTime.month;
-            if (*cp=='U') {
-              cp++;
-              param1 = RtcTime.month;
-              param2 = RtcTime.day_of_month;
-            }
-            if (dp < (linebuf + DISPLAY_BUFFER_COLS) -8) {
-              snprintf_P(dp, 9, PSTR("%02d" D_MONTH_DAY_SEPARATOR "%02d" D_YEAR_MONTH_SEPARATOR "%02d"), param1, param2, RtcTime.year%2000);
+        case 't':
+          if (*cp == 'S')
+          {
+            cp++;
+            if (dp < (linebuf + DISPLAY_BUFFER_COLS) - 8)
+            {
+              snprintf_P(dp, 9, PSTR("%02d" D_HOUR_MINUTE_SEPARATOR "%02d" D_MINUTE_SECOND_SEPARATOR "%02d"), RtcTime.hour, RtcTime.minute, RtcTime.second);
               dp += 8;
             }
-            break; }
-          case 'd':
-            // force draw grafics buffer
-            if (renderer) renderer->Updateframe();
-            else DisplayDrawFrame();
-            break;
-          case 'D':
-            // set auto draw mode
-            auto_draw=*cp&3;
-            if (renderer) renderer->setDrawMode(auto_draw>>1);
-            cp += 1;
-            break;
-          case 's':
-            // size sx
-            if (renderer) renderer->setTextSize(*cp&7);
-            else DisplaySetSize(*cp&3);
-            cp += 1;
-            break;
-          case 'f':
-            // font sx
-            if (renderer) renderer->setTextFont(*cp&7);
-            else DisplaySetFont(*cp&7);
-            cp += 1;
-            break;
-          case 'a':
-            // rotation angle
-            if (renderer) renderer->setRotation(*cp&3);
-            else DisplaySetRotation(*cp&3);
-            cp+=1;
-            break;
-
-#ifdef USE_GRAPH
-          case 'G':
-            // define graph
-            if (*cp=='d') {
-              cp++;
-              var=atoiv(cp,&temp);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&temp1);
-              cp+=var;
-              RedrawGraph(temp,temp1);
-              break;
-            }
-#if defined(USE_SCRIPT_FATFS) && defined(USE_SCRIPT)
-            if (*cp=='s') {
-              cp++;
-              var=atoiv(cp,&temp);
-              cp+=var;
-              cp++;
-              // path
-              char bbuff[128];
-              cp=get_string(bbuff,sizeof(bbuff),cp);
-              Save_graph(temp,bbuff);
-              break;
-            }
-            if (*cp=='r') {
-              cp++;
-              var=atoiv(cp,&temp);
-              cp+=var;
-              cp++;
-              // path
-              char bbuff[128];
-              cp=get_string(bbuff,sizeof(bbuff),cp);
-              Restore_graph(temp,bbuff);
-              break;
-            }
-#endif // USE_SCRIPT_FATFS
-            { int16_t num,gxp,gyp,gxs,gys,dec,icol;
-              float ymin,ymax;
-              var=atoiv(cp,&num);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&gxp);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&gyp);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&gxs);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&gys);
-              cp+=var;
-              cp++;
-              var=atoiv(cp,&dec);
-              cp+=var;
-              cp++;
-              var=fatoiv(cp,&ymin);
-              cp+=var;
-              cp++;
-              var=fatoiv(cp,&ymax);
-              cp+=var;
-              if (color_type==COLOR_COLOR) {
-                // color graph requires channel color
-                cp++;
-                var=atoiv(cp,&icol);
-                cp+=var;
-              } else {
-                icol=0;
-              }
-              DefineGraph(num,gxp,gyp,gxs,gys,dec,ymin,ymax,icol);
-            }
-            break;
-          case 'g':
-              { float temp;
-                int16_t num;
-                var=atoiv(cp,&num);
-                cp+=var;
-                cp++;
-                var=fatoiv(cp,&temp);
-                cp+=var;
-                AddValue(num,temp);
-              }
-            break;
-#endif // USE_GRAPH
-
-#ifdef USE_AWATCH
-          case 'w':
-              var = atoiv(cp, &temp);
-              cp += var;
-              DrawAClock(temp);
-              break;
-#endif // USE_AWATCH
-
-#ifdef USE_TOUCH_BUTTONS
-          case 'b':
-          { int16_t num,gxp,gyp,gxs,gys,outline,fill,textcolor,textsize; uint8_t dflg=1;
-            if (*cp=='e' || *cp=='d') {
-              // enable disable
-              uint8_t dis=0;
-              if (*cp=='d') dis=1;
-              cp++;
-              var=atoiv(cp,&num);
-              num=num%MAXBUTTONS;
-              cp+=var;
-              if (buttons[num]) {
-                buttons[num]->vpower.disable=dis;
-                if (!dis) {
-                  if (buttons[num]->vpower.is_virtual) buttons[num]->xdrawButton(buttons[num]->vpower.on_off);
-                  else buttons[num]->xdrawButton(bitRead(TasmotaGlobal.power,num));
-                }
-              }
-              break;
-            }
-            if (*cp=='-') {
-              cp++;
-              dflg=0;
-            }
-            var=atoiv(cp,&num);
-            cp+=var;
-            cp++;
-            uint8_t bflags=num>>8;
-            num=num%MAXBUTTONS;
-            var=atoiv(cp,&gxp);
-            cp+=var;
-            cp++;
-            var=atoiv(cp,&gyp);
-            cp+=var;
-            cp++;
-            var=atoiv(cp,&gxs);
-            cp+=var;
-            cp++;
-            var=atoiv(cp,&gys);
-            cp+=var;
-            cp++;
-            var=atoiv(cp,&outline);
-            cp+=var;
-            cp++;
-            var=atoiv(cp,&fill);
-            cp+=var;
-            cp++;
-            var=atoiv(cp,&textcolor);
-            cp+=var;
-            cp++;
-            var=atoiv(cp,&textsize);
-            cp+=var;
-            cp++;
-            // text itself
-            char bbuff[32];
-            cp=get_string(bbuff,sizeof(bbuff),cp);
-
-            if (buttons[num]) {
-              delete buttons[num];
-            }
-            if (renderer) {
-              buttons[num]= new VButton();
-              if (buttons[num]) {
-                buttons[num]->initButtonUL(renderer,gxp,gyp,gxs,gys,renderer->GetColorFromIndex(outline),\
-                  renderer->GetColorFromIndex(fill),renderer->GetColorFromIndex(textcolor),bbuff,textsize);
-                if (!bflags) {
-                  // power button
-                  if (dflg) buttons[num]->xdrawButton(bitRead(TasmotaGlobal.power,num));
-                  buttons[num]->vpower.is_virtual=0;
-                } else {
-                  // virtual button
-                  buttons[num]->vpower.is_virtual=1;
-                  if (bflags==2) {
-                    // push
-                    buttons[num]->vpower.is_pushbutton=1;
-                  } else {
-                    // toggle
-                    buttons[num]->vpower.is_pushbutton=0;
-                  }
-                  if (dflg) buttons[num]->xdrawButton(buttons[num]->vpower.on_off);
-                  buttons[num]->vpower.disable=!dflg;
-                }
-              }
+          }
+          else
+          {
+            if (dp < (linebuf + DISPLAY_BUFFER_COLS) - 5)
+            {
+              snprintf_P(dp, 6, PSTR("%02d" D_HOUR_MINUTE_SEPARATOR "%02d"), RtcTime.hour, RtcTime.minute);
+              dp += 5;
             }
           }
           break;
-#endif // USE_TOUCH_BUTTONS
-          default:
-            // unknown escape
-            Response_P(PSTR("Unknown Escape"));
-            goto exit;
+        case 'T':
+        {
+          uint8_t param1 = RtcTime.day_of_month;
+          uint8_t param2 = RtcTime.month;
+          if (*cp == 'U')
+          {
+            cp++;
+            param1 = RtcTime.month;
+            param2 = RtcTime.day_of_month;
+          }
+          if (dp < (linebuf + DISPLAY_BUFFER_COLS) - 8)
+          {
+            snprintf_P(dp, 9, PSTR("%02d" D_MONTH_DAY_SEPARATOR "%02d" D_YEAR_MONTH_SEPARATOR "%02d"), param1, param2, RtcTime.year % 2000);
+            dp += 8;
+          }
+          break;
+        }
+        case 'd':
+          // force draw grafics buffer
+          if (renderer)
+            renderer->Updateframe();
+          else
+            DisplayDrawFrame();
+          break;
+        case 'D':
+          // set auto draw mode
+          auto_draw = *cp & 3;
+          if (renderer)
+            renderer->setDrawMode(auto_draw >> 1);
+          cp += 1;
+          break;
+        case 's':
+          // size sx
+          if (renderer)
+            renderer->setTextSize(*cp & 7);
+          else
+            DisplaySetSize(*cp & 3);
+          cp += 1;
+          break;
+        case 'f':
+          // font sx
+          if (renderer)
+            renderer->setTextFont(*cp & 7);
+          else
+            DisplaySetFont(*cp & 7);
+          cp += 1;
+          break;
+        case 'a':
+          // rotation angle
+          if (renderer)
+            renderer->setRotation(*cp & 3);
+          else
+            DisplaySetRotation(*cp & 3);
+          cp += 1;
+          break;
+
+#ifdef USE_GRAPH
+        case 'G':
+          // define graph
+          if (*cp == 'd')
+          {
+            cp++;
+            var = atoiv(cp, &temp);
+            cp += var;
+            cp++;
+            var = atoiv(cp, &temp1);
+            cp += var;
+            RedrawGraph(temp, temp1);
             break;
+          }
+#if defined(USE_SCRIPT_FATFS) && defined(USE_SCRIPT)
+          if (*cp == 's')
+          {
+            cp++;
+            var = atoiv(cp, &temp);
+            cp += var;
+            cp++;
+            // path
+            char bbuff[128];
+            cp = get_string(bbuff, sizeof(bbuff), cp);
+            Save_graph(temp, bbuff);
+            break;
+          }
+          if (*cp == 'r')
+          {
+            cp++;
+            var = atoiv(cp, &temp);
+            cp += var;
+            cp++;
+            // path
+            char bbuff[128];
+            cp = get_string(bbuff, sizeof(bbuff), cp);
+            Restore_graph(temp, bbuff);
+            break;
+          }
+#endif // USE_SCRIPT_FATFS
+          {
+            int16_t num, gxp, gyp, gxs, gys, dec, icol;
+            float ymin, ymax;
+            var = atoiv(cp, &num);
+            cp += var;
+            cp++;
+            var = atoiv(cp, &gxp);
+            cp += var;
+            cp++;
+            var = atoiv(cp, &gyp);
+            cp += var;
+            cp++;
+            var = atoiv(cp, &gxs);
+            cp += var;
+            cp++;
+            var = atoiv(cp, &gys);
+            cp += var;
+            cp++;
+            var = atoiv(cp, &dec);
+            cp += var;
+            cp++;
+            var = fatoiv(cp, &ymin);
+            cp += var;
+            cp++;
+            var = fatoiv(cp, &ymax);
+            cp += var;
+            if (color_type == COLOR_COLOR)
+            {
+              // color graph requires channel color
+              cp++;
+              var = atoiv(cp, &icol);
+              cp += var;
+            }
+            else
+            {
+              icol = 0;
+            }
+            DefineGraph(num, gxp, gyp, gxs, gys, dec, ymin, ymax, icol);
+          }
+          break;
+        case 'g':
+        {
+          float temp;
+          int16_t num;
+          var = atoiv(cp, &num);
+          cp += var;
+          cp++;
+          var = fatoiv(cp, &temp);
+          cp += var;
+          AddValue(num, temp);
+        }
+        break;
+#endif // USE_GRAPH
+
+#ifdef USE_AWATCH
+        case 'w':
+          var = atoiv(cp, &temp);
+          cp += var;
+          DrawAClock(temp);
+          break;
+#endif // USE_AWATCH
+
+#ifdef USE_TOUCH_BUTTONS
+        case 'b':
+        {
+          int16_t num, gxp, gyp, gxs, gys, outline, fill, textcolor, textsize;
+          uint8_t dflg = 1;
+          if (*cp == 'e' || *cp == 'd')
+          {
+            // enable disable
+            uint8_t dis = 0;
+            if (*cp == 'd')
+              dis = 1;
+            cp++;
+            var = atoiv(cp, &num);
+            num = num % MAXBUTTONS;
+            cp += var;
+            if (buttons[num])
+            {
+              buttons[num]->vpower.disable = dis;
+              if (!dis)
+              {
+                if (buttons[num]->vpower.is_virtual)
+                  buttons[num]->xdrawButton(buttons[num]->vpower.on_off);
+                else
+                  buttons[num]->xdrawButton(bitRead(TasmotaGlobal.power, num));
+              }
+            }
+            break;
+          }
+          if (*cp == '-')
+          {
+            cp++;
+            dflg = 0;
+          }
+          var = atoiv(cp, &num);
+          cp += var;
+          cp++;
+          uint8_t bflags = num >> 8;
+          num = num % MAXBUTTONS;
+          var = atoiv(cp, &gxp);
+          cp += var;
+          cp++;
+          var = atoiv(cp, &gyp);
+          cp += var;
+          cp++;
+          var = atoiv(cp, &gxs);
+          cp += var;
+          cp++;
+          var = atoiv(cp, &gys);
+          cp += var;
+          cp++;
+          var = atoiv(cp, &outline);
+          cp += var;
+          cp++;
+          var = atoiv(cp, &fill);
+          cp += var;
+          cp++;
+          var = atoiv(cp, &textcolor);
+          cp += var;
+          cp++;
+          var = atoiv(cp, &textsize);
+          cp += var;
+          cp++;
+          // text itself
+          char bbuff[32];
+          cp = get_string(bbuff, sizeof(bbuff), cp);
+
+          if (buttons[num])
+          {
+            delete buttons[num];
+          }
+          if (renderer)
+          {
+            buttons[num] = new VButton();
+            if (buttons[num])
+            {
+              buttons[num]->initButtonUL(renderer, gxp, gyp, gxs, gys, renderer->GetColorFromIndex(outline),
+                                         renderer->GetColorFromIndex(fill), renderer->GetColorFromIndex(textcolor), bbuff, textsize);
+              if (!bflags)
+              {
+                // power button
+                if (dflg)
+                  buttons[num]->xdrawButton(bitRead(TasmotaGlobal.power, num));
+                buttons[num]->vpower.is_virtual = 0;
+              }
+              else
+              {
+                // virtual button
+                buttons[num]->vpower.is_virtual = 1;
+                if (bflags == 2)
+                {
+                  // push
+                  buttons[num]->vpower.is_pushbutton = 1;
+                }
+                else
+                {
+                  // toggle
+                  buttons[num]->vpower.is_pushbutton = 0;
+                }
+                if (dflg)
+                  buttons[num]->xdrawButton(buttons[num]->vpower.on_off);
+                buttons[num]->vpower.disable = !dflg;
+              }
+            }
+          }
+        }
+        break;
+#endif // USE_TOUCH_BUTTONS
+        default:
+          // unknown escape
+          Response_P(PSTR("Unknown Escape"));
+          goto exit;
+          break;
         }
       }
     }
   }
-  exit:
+exit:
   // now draw buffer
-    dp -= decode_te(linebuf);
-    if ((uint32_t)dp - (uint32_t)linebuf) {
-      if (!fill) {
-        *dp = 0;
-      } else {
-        linebuf[abs(int(fill))] = 0;
-      }
-      if (fill<0) {
-        // right align
-        alignright(linebuf);
-      }
-      if (col > 0 && lin > 0) {
-        // use col and lin
-        if (!renderer) DisplayDrawStringAt(col, lin, linebuf, fg_color, 1);
-        else renderer->DrawStringAt(col, lin, linebuf, fg_color, 1);
-      } else {
-        // use disp_xpos, disp_ypos
-        if (!renderer) DisplayDrawStringAt(disp_xpos, disp_ypos, linebuf, fg_color, 0);
-        else renderer->DrawStringAt(disp_xpos, disp_ypos, linebuf, fg_color, 0);
-      }
+  dp -= decode_te(linebuf);
+  if ((uint32_t)dp - (uint32_t)linebuf)
+  {
+    if (!fill)
+    {
+      *dp = 0;
     }
-    // draw buffer
-    if (auto_draw&1) {
-      if (renderer) renderer->Updateframe();
-      else DisplayDrawFrame();
+    else
+    {
+      linebuf[abs(int(fill))] = 0;
     }
+    if (fill < 0)
+    {
+      // right align
+      alignright(linebuf);
+    }
+    if (col > 0 && lin > 0)
+    {
+      // use col and lin
+      if (!renderer)
+        DisplayDrawStringAt(col, lin, linebuf, fg_color, 1);
+      else
+        renderer->DrawStringAt(col, lin, linebuf, fg_color, 1);
+    }
+    else
+    {
+      // use disp_xpos, disp_ypos
+      if (!renderer)
+        DisplayDrawStringAt(disp_xpos, disp_ypos, linebuf, fg_color, 0);
+      else
+        renderer->DrawStringAt(disp_xpos, disp_ypos, linebuf, fg_color, 0);
+    }
+  }
+  // draw buffer
+  if (auto_draw & 1)
+  {
+    if (renderer)
+      renderer->Updateframe();
+    else
+      DisplayDrawFrame();
+  }
 }
 
 /*********************************************************************************************/
@@ -888,8 +1020,10 @@ void TempText(void)
 
 void TempClearScreenBuffer(void)
 {
-  if (disp_screen_buffer_cols) {
-    for (uint32_t i = 0; i < disp_screen_buffer_rows; i++) {
+  if (disp_screen_buffer_cols)
+  {
+    for (uint32_t i = 0; i < disp_screen_buffer_rows; i++)
+    {
       memset(disp_screen_buffer[i], 0, disp_screen_buffer_cols);
     }
   }
@@ -897,9 +1031,14 @@ void TempClearScreenBuffer(void)
 
 void TempFreeScreenBuffer(void)
 {
-  if (disp_screen_buffer != nullptr) {
-    for (uint32_t i = 0; i < disp_screen_buffer_rows; i++) {
-      if (disp_screen_buffer[i] != nullptr) { free(disp_screen_buffer[i]); }
+  if (disp_screen_buffer != nullptr)
+  {
+    for (uint32_t i = 0; i < disp_screen_buffer_rows; i++)
+    {
+      if (disp_screen_buffer[i] != nullptr)
+      {
+        free(disp_screen_buffer[i]);
+      }
     }
     free(disp_screen_buffer);
     disp_screen_buffer_cols = 0;
@@ -909,20 +1048,25 @@ void TempFreeScreenBuffer(void)
 
 void TempAllocScreenBuffer(void)
 {
-  if (!disp_screen_buffer_cols) {
+  if (!disp_screen_buffer_cols)
+  {
     disp_screen_buffer_rows = Settings.display_rows;
-    disp_screen_buffer = (char**)malloc(sizeof(*disp_screen_buffer) * disp_screen_buffer_rows);
-    if (disp_screen_buffer != nullptr) {
-      for (uint32_t i = 0; i < disp_screen_buffer_rows; i++) {
-        disp_screen_buffer[i] = (char*)malloc(sizeof(*disp_screen_buffer[i]) * (Settings.display_cols[0] +1));
-        if (disp_screen_buffer[i] == nullptr) {
+    disp_screen_buffer = (char **)malloc(sizeof(*disp_screen_buffer) * disp_screen_buffer_rows);
+    if (disp_screen_buffer != nullptr)
+    {
+      for (uint32_t i = 0; i < disp_screen_buffer_rows; i++)
+      {
+        disp_screen_buffer[i] = (char *)malloc(sizeof(*disp_screen_buffer[i]) * (Settings.display_cols[0] + 1));
+        if (disp_screen_buffer[i] == nullptr)
+        {
           DisplayFreeScreenBuffer();
           break;
         }
       }
     }
-    if (disp_screen_buffer != nullptr) {
-      disp_screen_buffer_cols = Settings.display_cols[0] +1;
+    if (disp_screen_buffer != nullptr)
+    {
+      disp_screen_buffer_cols = Settings.display_cols[0] + 1;
       DisplayClearScreenBuffer();
     }
   }
@@ -937,9 +1081,10 @@ void TempReAllocScreenBuffer(void)
 void TempFillScreen(uint32_t line)
 {
   uint32_t len = disp_screen_buffer_cols - strlen(disp_screen_buffer[line]);
-  if (len) {
+  if (len)
+  {
     memset(disp_screen_buffer[line] + strlen(disp_screen_buffer[line]), 0x20, len);
-    disp_screen_buffer[line][disp_screen_buffer_cols -1] = 0;
+    disp_screen_buffer[line][disp_screen_buffer_cols - 1] = 0;
   }
 }
 
@@ -947,8 +1092,10 @@ void TempFillScreen(uint32_t line)
 
 void TempClearLogBuffer(void)
 {
-  if (disp_log_buffer_cols) {
-    for (uint32_t i = 0; i < DISPLAY_LOG_ROWS; i++) {
+  if (disp_log_buffer_cols)
+  {
+    for (uint32_t i = 0; i < DISPLAY_LOG_ROWS; i++)
+    {
       memset(disp_log_buffer[i], 0, disp_log_buffer_cols);
     }
   }
@@ -956,9 +1103,14 @@ void TempClearLogBuffer(void)
 
 void TempFreeLogBuffer(void)
 {
-  if (disp_log_buffer != nullptr) {
-    for (uint32_t i = 0; i < DISPLAY_LOG_ROWS; i++) {
-      if (disp_log_buffer[i] != nullptr) { free(disp_log_buffer[i]); }
+  if (disp_log_buffer != nullptr)
+  {
+    for (uint32_t i = 0; i < DISPLAY_LOG_ROWS; i++)
+    {
+      if (disp_log_buffer[i] != nullptr)
+      {
+        free(disp_log_buffer[i]);
+      }
     }
     free(disp_log_buffer);
     disp_log_buffer_cols = 0;
@@ -967,19 +1119,24 @@ void TempFreeLogBuffer(void)
 
 void TempAllocLogBuffer(void)
 {
-  if (!disp_log_buffer_cols) {
-    disp_log_buffer = (char**)malloc(sizeof(*disp_log_buffer) * DISPLAY_LOG_ROWS);
-    if (disp_log_buffer != nullptr) {
-      for (uint32_t i = 0; i < DISPLAY_LOG_ROWS; i++) {
-        disp_log_buffer[i] = (char*)malloc(sizeof(*disp_log_buffer[i]) * (Settings.display_cols[0] +1));
-        if (disp_log_buffer[i] == nullptr) {
+  if (!disp_log_buffer_cols)
+  {
+    disp_log_buffer = (char **)malloc(sizeof(*disp_log_buffer) * DISPLAY_LOG_ROWS);
+    if (disp_log_buffer != nullptr)
+    {
+      for (uint32_t i = 0; i < DISPLAY_LOG_ROWS; i++)
+      {
+        disp_log_buffer[i] = (char *)malloc(sizeof(*disp_log_buffer[i]) * (Settings.display_cols[0] + 1));
+        if (disp_log_buffer[i] == nullptr)
+        {
           DisplayFreeLogBuffer();
           break;
         }
       }
     }
-    if (disp_log_buffer != nullptr) {
-      disp_log_buffer_cols = Settings.display_cols[0] +1;
+    if (disp_log_buffer != nullptr)
+    {
+      disp_log_buffer_cols = Settings.display_cols[0] + 1;
       DisplayClearLogBuffer();
     }
   }
@@ -991,26 +1148,38 @@ void TempReAllocLogBuffer(void)
   DisplayAllocLogBuffer();
 }
 
-void TempLogBufferAdd(char* txt)
+void TempLogBufferAdd(char *txt)
 {
-  if (disp_log_buffer_cols) {
-    strlcpy(disp_log_buffer[disp_log_buffer_idx], txt, disp_log_buffer_cols);  // This preserves the % sign where printf won't
+  if (disp_log_buffer_cols)
+  {
+    strlcpy(disp_log_buffer[disp_log_buffer_idx], txt, disp_log_buffer_cols); // This preserves the % sign where printf won't
     disp_log_buffer_idx++;
-    if (DISPLAY_LOG_ROWS == disp_log_buffer_idx) { disp_log_buffer_idx = 0; }
+    if (DISPLAY_LOG_ROWS == disp_log_buffer_idx)
+    {
+      disp_log_buffer_idx = 0;
+    }
   }
 }
 
-char* TempLogBuffer(char temp_code)
+char *TempLogBuffer(char temp_code)
 {
-  char* result = nullptr;
-  if (disp_log_buffer_cols) {
-    if (disp_log_buffer_idx != disp_log_buffer_ptr) {
+  char *result = nullptr;
+  if (disp_log_buffer_cols)
+  {
+    if (disp_log_buffer_idx != disp_log_buffer_ptr)
+    {
       result = disp_log_buffer[disp_log_buffer_ptr];
       disp_log_buffer_ptr++;
-      if (DISPLAY_LOG_ROWS == disp_log_buffer_ptr) { disp_log_buffer_ptr = 0; }
+      if (DISPLAY_LOG_ROWS == disp_log_buffer_ptr)
+      {
+        disp_log_buffer_ptr = 0;
+      }
 
-      char *pch = strchr(result, '~');  // = 0x7E (~) Replace degrees character (276 octal)
-      if (pch != nullptr) { result[pch - result] = temp_code; }
+      char *pch = strchr(result, '~'); // = 0x7E (~) Replace degrees character (276 octal)
+      if (pch != nullptr)
+      {
+        result[pch - result] = temp_code;
+      }
     }
   }
   return result;
@@ -1018,7 +1187,8 @@ char* TempLogBuffer(char temp_code)
 
 void TempLogBufferInit(void)
 {
-  if (Settings.display_mode) {
+  if (Settings.display_mode)
+  {
     disp_log_buffer_idx = 0;
     disp_log_buffer_ptr = 0;
     disp_refresh = Settings.display_refresh;
@@ -1040,7 +1210,8 @@ void TempLogBufferInit(void)
     DisplayLogBufferAdd(buffer);
     snprintf_P(buffer, sizeof(buffer), PSTR("IP %s"), NetworkAddress().toString().c_str());
     DisplayLogBufferAdd(buffer);
-    if (!TasmotaGlobal.global_state.wifi_down) {
+    if (!TasmotaGlobal.global_state.wifi_down)
+    {
       snprintf_P(buffer, sizeof(buffer), PSTR(D_JSON_SSID " %s"), SettingsText(SET_STASSID1 + Settings.sta_active));
       DisplayLogBufferAdd(buffer);
       snprintf_P(buffer, sizeof(buffer), PSTR(D_JSON_RSSI " %d%%"), WifiGetRssiAsQuality(WiFi.RSSI()));
@@ -1082,122 +1253,151 @@ const char kSensorQuantity[] PROGMEM =
   D_JSON_CO2 "|"                                                                // ppm
   D_JSON_FREQUENCY ;                                                            // Hz
 */
-void TempJsonValue(const char* topic, const char* device, const char* mkey, const char* value)
+void TempJsonValue(const char *topic, const char *device, const char *mkey, const char *value)
 {
   char quantity[TOPSZ];
-  char buffer[Settings.display_cols[0] +1];
+  char buffer[Settings.display_cols[0] + 1];
   char spaces[Settings.display_cols[0]];
   char source[Settings.display_cols[0] - Settings.display_cols[1]];
-  char svalue[Settings.display_cols[1] +1];
+  char svalue[Settings.display_cols[1] + 1];
 
 #ifdef USE_DEBUG_DRIVER
   ShowFreeMem(PSTR("DisplayJsonValue"));
 #endif
 
   memset(spaces, 0x20, sizeof(spaces));
-  spaces[sizeof(spaces) -1] = '\0';
-  snprintf_P(source, sizeof(source), PSTR("%s%s%s%s"), topic, (strlen(topic))?"/":"", mkey, spaces);  // pow1/Voltage or Voltage if topic is empty (local sensor)
+  spaces[sizeof(spaces) - 1] = '\0';
+  snprintf_P(source, sizeof(source), PSTR("%s%s%s%s"), topic, (strlen(topic)) ? "/" : "", mkey, spaces); // pow1/Voltage or Voltage if topic is empty (local sensor)
 
   int quantity_code = GetCommandCode(quantity, sizeof(quantity), mkey, kSensorQuantity);
-  if ((-1 == quantity_code) || !strcmp_P(mkey, S_RSLT_POWER)) {  // Ok: Power, Not ok: POWER
+  if ((-1 == quantity_code) || !strcmp_P(mkey, S_RSLT_POWER))
+  { // Ok: Power, Not ok: POWER
     return;
   }
-  if (JSON_TEMPERATURE == quantity_code) {
+  if (JSON_TEMPERATURE == quantity_code)
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s~%s"), value, disp_temp);
   }
-  else if ((quantity_code >= JSON_HUMIDITY) && (quantity_code <= JSON_AIRQUALITY)) {
+  else if ((quantity_code >= JSON_HUMIDITY) && (quantity_code <= JSON_AIRQUALITY))
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s%%"), value);
   }
-  else if ((quantity_code >= JSON_PRESSURE) && (quantity_code <= JSON_PRESSUREATSEALEVEL)) {
+  else if ((quantity_code >= JSON_PRESSURE) && (quantity_code <= JSON_PRESSUREATSEALEVEL))
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s%s"), value, disp_pres);
   }
-  else if (JSON_ILLUMINANCE == quantity_code) {
+  else if (JSON_ILLUMINANCE == quantity_code)
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s" D_UNIT_LUX), value);
   }
-  else if (JSON_GAS == quantity_code) {
+  else if (JSON_GAS == quantity_code)
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s" D_UNIT_KILOOHM), value);
   }
-  else if ((quantity_code >= JSON_YESTERDAY) && (quantity_code <= JSON_TODAY)) {
+  else if ((quantity_code >= JSON_YESTERDAY) && (quantity_code <= JSON_TODAY))
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s" D_UNIT_KILOWATTHOUR), value);
   }
-  else if (JSON_PERIOD == quantity_code) {
+  else if (JSON_PERIOD == quantity_code)
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s" D_UNIT_WATTHOUR), value);
   }
-  else if ((quantity_code >= JSON_POWERFACTOR) && (quantity_code <= JSON_UV_LEVEL)) {
+  else if ((quantity_code >= JSON_POWERFACTOR) && (quantity_code <= JSON_UV_LEVEL))
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s"), value);
   }
-  else if (JSON_CURRENT == quantity_code) {
+  else if (JSON_CURRENT == quantity_code)
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s" D_UNIT_AMPERE), value);
   }
-  else if (JSON_VOLTAGE == quantity_code) {
+  else if (JSON_VOLTAGE == quantity_code)
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s" D_UNIT_VOLT), value);
   }
-  else if (JSON_POWERUSAGE == quantity_code) {
+  else if (JSON_POWERUSAGE == quantity_code)
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s" D_UNIT_WATT), value);
   }
-  else if (JSON_CO2 == quantity_code) {
+  else if (JSON_CO2 == quantity_code)
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s" D_UNIT_PARTS_PER_MILLION), value);
   }
-  else if (JSON_FREQUENCY == quantity_code) {
+  else if (JSON_FREQUENCY == quantity_code)
+  {
     snprintf_P(svalue, sizeof(svalue), PSTR("%s" D_UNIT_HERTZ), value);
   }
   snprintf_P(buffer, sizeof(buffer), PSTR("%s %s"), source, svalue);
 
-//  AddLog_P(LOG_LEVEL_DEBUG, PSTR(D_LOG_DEBUG "mkey [%s], source [%s], value [%s], quantity_code %d, log_buffer [%s]"), mkey, source, value, quantity_code, buffer);
+  //  AddLog_P(LOG_LEVEL_DEBUG, PSTR(D_LOG_DEBUG "mkey [%s], source [%s], value [%s], quantity_code %d, log_buffer [%s]"), mkey, source, value, quantity_code, buffer);
 
   DisplayLogBufferAdd(buffer);
 }
 
 void TempAnalyzeJson(char *topic, char *json)
 {
-// //tele/pow2/STATE    {"Time":"2017-09-20T11:53:03", "Uptime":10, "Vcc":3.123, "POWER":"ON", "Wifi":{"AP":2, "SSId":"indebuurt2", "RSSI":68, "APMac":"00:22:6B:FE:8E:20"}}
-// //tele/pow2/ENERGY   {"Time":"2017-09-20T11:53:03", "Total":6.522, "Yesterday":0.150, "Today":0.073, "Period":0.5, "Power":12.1, "Factor":0.56, "Voltage":210.1, "Current":0.102}
+  // //tele/pow2/STATE    {"Time":"2017-09-20T11:53:03", "Uptime":10, "Vcc":3.123, "POWER":"ON", "Wifi":{"AP":2, "SSId":"indebuurt2", "RSSI":68, "APMac":"00:22:6B:FE:8E:20"}}
+  // //tele/pow2/ENERGY   {"Time":"2017-09-20T11:53:03", "Total":6.522, "Yesterday":0.150, "Today":0.073, "Period":0.5, "Power":12.1, "Factor":0.56, "Voltage":210.1, "Current":0.102}
 
-// tele/pow1/SENSOR = {"Time":"2018-01-02T17:13:17","ENERGY":{"Total":13.091,"Yesterday":0.060,"Today":0.046,"Period":0.2,"Power":9.8,"Factor":0.49,"Voltage":206.8,"Current":0.096}}
-// tele/dual/STATE    {"Time":"2017-09-20T11:53:03","Uptime":25,"Vcc":3.178,"POWER1":"OFF","POWER2":"OFF","Wifi":{"AP":2,"SSId":"indebuurt2","RSSI":100,"APMac":"00:22:6B:FE:8E:20"}}
-// tele/sc/SENSOR     {"Time":"2017-09-20T11:53:09","Temperature":24.0,"Humidity":16.0,"Light":30,"Noise":20,"AirQuality":100,"TempUnit":"C"}
-// tele/rf1/SENSOR    {"Time":"2017-09-20T11:53:23","BH1750":{"Illuminance":57}}
-// tele/wemos5/SENSOR {"Time":"2017-09-20T11:53:53","SHT1X":{"Temperature":20.1,"Humidity":58.9},"HTU21":{"Temperature":20.7,"Humidity":58.5},"BMP280":{"Temperature":21.6,"Pressure":1020.3},"TempUnit":"C"}
-// tele/th1/SENSOR    {"Time":"2017-09-20T11:54:48","DS18B20":{"Temperature":49.7},"TempUnit":"C"}
+  // tele/pow1/SENSOR = {"Time":"2018-01-02T17:13:17","ENERGY":{"Total":13.091,"Yesterday":0.060,"Today":0.046,"Period":0.2,"Power":9.8,"Factor":0.49,"Voltage":206.8,"Current":0.096}}
+  // tele/dual/STATE    {"Time":"2017-09-20T11:53:03","Uptime":25,"Vcc":3.178,"POWER1":"OFF","POWER2":"OFF","Wifi":{"AP":2,"SSId":"indebuurt2","RSSI":100,"APMac":"00:22:6B:FE:8E:20"}}
+  // tele/sc/SENSOR     {"Time":"2017-09-20T11:53:09","Temperature":24.0,"Humidity":16.0,"Light":30,"Noise":20,"AirQuality":100,"TempUnit":"C"}
+  // tele/rf1/SENSOR    {"Time":"2017-09-20T11:53:23","BH1750":{"Illuminance":57}}
+  // tele/wemos5/SENSOR {"Time":"2017-09-20T11:53:53","SHT1X":{"Temperature":20.1,"Humidity":58.9},"HTU21":{"Temperature":20.7,"Humidity":58.5},"BMP280":{"Temperature":21.6,"Pressure":1020.3},"TempUnit":"C"}
+  // tele/th1/SENSOR    {"Time":"2017-09-20T11:54:48","DS18B20":{"Temperature":49.7},"TempUnit":"C"}
 
-  String jsonStr = json;  // Move from stack to heap to fix watchdogs (20180626)
-  JsonParser parser((char*)jsonStr.c_str());
+  String jsonStr = json; // Move from stack to heap to fix watchdogs (20180626)
+  JsonParser parser((char *)jsonStr.c_str());
   JsonParserObject root = parser.getRootObject();
-  if (root) {   // did JSON parsing went ok?
+  if (root)
+  { // did JSON parsing went ok?
 
-    const char *unit = root.getStr(PSTR(D_JSON_TEMPERATURE_UNIT), nullptr);   // nullptr if not found
-    if (unit) {
-      snprintf_P(disp_temp, sizeof(disp_temp), PSTR("%s"), unit);  // C or F
+    const char *unit = root.getStr(PSTR(D_JSON_TEMPERATURE_UNIT), nullptr); // nullptr if not found
+    if (unit)
+    {
+      snprintf_P(disp_temp, sizeof(disp_temp), PSTR("%s"), unit); // C or F
     }
-    unit = root.getStr(PSTR(D_JSON_PRESSURE_UNIT), nullptr);   // nullptr if not found
-    if (unit) {
-      snprintf_P(disp_pres, sizeof(disp_pres), PSTR("%s"), unit);  // hPa or mmHg
+    unit = root.getStr(PSTR(D_JSON_PRESSURE_UNIT), nullptr); // nullptr if not found
+    if (unit)
+    {
+      snprintf_P(disp_pres, sizeof(disp_pres), PSTR("%s"), unit); // hPa or mmHg
     }
-    for (auto key1 : root) {
+    for (auto key1 : root)
+    {
       JsonParserToken value1 = key1.getValue();
-      if (value1.isObject()) {
+      if (value1.isObject())
+      {
         JsonParserObject Object2 = value1.getObject();
-        for (auto key2 : Object2) {
+        for (auto key2 : Object2)
+        {
           JsonParserToken value2 = key2.getValue();
-          if (value2.isObject()) {
+          if (value2.isObject())
+          {
             JsonParserObject Object3 = value2.getObject();
-            for (auto key3 : Object3) {
-              const char* value3 = key3.getValue().getStr(nullptr);
-              if (value3 != nullptr) {  // "DHT11":{"Temperature":null,"Humidity":null} - ignore null as it will raise exception 28
-                DisplayJsonValue(topic, key1.getStr(), key3.getStr(), value3);  // Sensor 56%
+            for (auto key3 : Object3)
+            {
+              const char *value3 = key3.getValue().getStr(nullptr);
+              if (value3 != nullptr)
+              {                                                                // "DHT11":{"Temperature":null,"Humidity":null} - ignore null as it will raise exception 28
+                DisplayJsonValue(topic, key1.getStr(), key3.getStr(), value3); // Sensor 56%
               }
             }
-          } else {
-            const char* value = value2.getStr(nullptr);
-            if (value != nullptr) {
-              DisplayJsonValue(topic, key1.getStr(), key2.getStr(), value);  // Sensor  56%
+          }
+          else
+          {
+            const char *value = value2.getStr(nullptr);
+            if (value != nullptr)
+            {
+              DisplayJsonValue(topic, key1.getStr(), key2.getStr(), value); // Sensor  56%
             }
           }
         }
-      } else {
-        const char* value = value1.getStr(nullptr);
-        if (value != nullptr) {
-          DisplayJsonValue(topic, key1.getStr(), key1.getStr(), value);  // Topic  56%
+      }
+      else
+      {
+        const char *value = value1.getStr(nullptr);
+        if (value != nullptr)
+        {
+          DisplayJsonValue(topic, key1.getStr(), key1.getStr(), value); // Topic  56%
         }
       }
     }
@@ -1206,13 +1406,14 @@ void TempAnalyzeJson(char *topic, char *json)
 
 void TempMqttSubscribe(void)
 {
-/* Subscribe to tele messages only
+  /* Subscribe to tele messages only
  * Supports the following FullTopic formats
  * - %prefix%/%topic%
  * - home/%prefix%/%topic%
  * - home/level2/%prefix%/%topic% etc.
  */
-  if (Settings.display_model && (Settings.display_mode &0x04)) {
+  if (Settings.display_model && (Settings.display_mode & 0x04))
+  {
 
     char stopic[TOPSZ];
     char ntopic[TOPSZ];
@@ -1220,33 +1421,40 @@ void TempMqttSubscribe(void)
     ntopic[0] = '\0';
     strlcpy(stopic, SettingsText(SET_MQTT_FULLTOPIC), sizeof(stopic));
     char *tp = strtok(stopic, "/");
-    while (tp != nullptr) {
-      if (!strcmp_P(tp, MQTT_TOKEN_PREFIX)) {
+    while (tp != nullptr)
+    {
+      if (!strcmp_P(tp, MQTT_TOKEN_PREFIX))
+      {
         break;
       }
-      strncat_P(ntopic, PSTR("+/"), sizeof(ntopic) - strlen(ntopic) -1);           // Add single-level wildcards
+      strncat_P(ntopic, PSTR("+/"), sizeof(ntopic) - strlen(ntopic) - 1); // Add single-level wildcards
       tp = strtok(nullptr, "/");
     }
-    strncat(ntopic, SettingsText(SET_MQTTPREFIX3), sizeof(ntopic) - strlen(ntopic) -1);  // Subscribe to tele messages
-    strncat_P(ntopic, PSTR("/#"), sizeof(ntopic) - strlen(ntopic) -1);             // Add multi-level wildcard
+    strncat(ntopic, SettingsText(SET_MQTTPREFIX3), sizeof(ntopic) - strlen(ntopic) - 1); // Subscribe to tele messages
+    strncat_P(ntopic, PSTR("/#"), sizeof(ntopic) - strlen(ntopic) - 1);                  // Add multi-level wildcard
     MqttSubscribe(ntopic);
     disp_subscribed = true;
-  } else {
+  }
+  else
+  {
     disp_subscribed = false;
   }
 }
 
 bool TempMqttData(void)
 {
-  if (disp_subscribed) {
+  if (disp_subscribed)
+  {
     char stopic[TOPSZ];
 
-    snprintf_P(stopic, sizeof(stopic) , PSTR("%s/"), SettingsText(SET_MQTTPREFIX3));  // tele/
+    snprintf_P(stopic, sizeof(stopic), PSTR("%s/"), SettingsText(SET_MQTTPREFIX3)); // tele/
     char *tp = strstr(XdrvMailbox.topic, stopic);
-    if (tp) {                                                // tele/tasmota/SENSOR
-      if (Settings.display_mode &0x04) {
-        tp = tp + strlen(stopic);                              // tasmota/SENSOR
-        char *topic = strtok(tp, "/");                         // tasmota
+    if (tp)
+    { // tele/tasmota/SENSOR
+      if (Settings.display_mode & 0x04)
+      {
+        tp = tp + strlen(stopic);      // tasmota/SENSOR
+        char *topic = strtok(tp, "/"); // tasmota
         DisplayAnalyzeJson(topic, XdrvMailbox.data);
       }
       return true;
@@ -1257,27 +1465,28 @@ bool TempMqttData(void)
 
 void TempLocalSensor(void)
 {
-  if ((Settings.display_mode &0x02) && (0 == TasmotaGlobal.tele_period)) {
-    char no_topic[1] = { 0 };
-//    DisplayAnalyzeJson(TasmotaGlobal.mqtt_topic, TasmotaGlobal.mqtt_data);  // Add local topic
-    DisplayAnalyzeJson(no_topic, TasmotaGlobal.mqtt_data);    // Discard any topic
+  if ((Settings.display_mode & 0x02) && (0 == TasmotaGlobal.tele_period))
+  {
+    char no_topic[1] = {0};
+    //    DisplayAnalyzeJson(TasmotaGlobal.mqtt_topic, TasmotaGlobal.mqtt_data);  // Add local topic
+    DisplayAnalyzeJson(no_topic, TasmotaGlobal.mqtt_data); // Discard any topic
   }
 }
 
-#endif  // USE_DISPLAY_MODES1TO5
+#endif // USE_DISPLAY_MODES1TO5
 
-const lv_area_t* hasp_area_p;
-uint16_t * hasp_color_p;
+const lv_area_t *hasp_area_p;
+uint16_t *hasp_color_p;
 
-void hasp_flush_cb(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * data)
+void hasp_flush_cb(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *data)
 {
-    hasp_area_p = area;
-    hasp_color_p = (uint16_t *)data;
-    XdspCall(FUNC_DISPLAY_DRAW_FRAME);
-    //AddLog_P(LOG_LEVEL_INFO, PSTR("HSP: Flush Buffer"));
+  hasp_area_p = area;
+  hasp_color_p = (uint16_t *)data;
+  XdspCall(FUNC_DISPLAY_DRAW_FRAME);
+  //AddLog_P(LOG_LEVEL_INFO, PSTR("HSP: Flush Buffer"));
 
-    /* Tell lvgl that flushing is done */
-    lv_disp_flush_ready(disp);
+  /* Tell lvgl that flushing is done */
+  lv_disp_flush_ready(disp);
 }
 
 /*
@@ -1296,89 +1505,93 @@ static void ICACHE_RAM_ATTR lv_tick_handler(void)
 
 void guiStart()
 {
-    /*Initialize the graphics library's tick*/
+  /*Initialize the graphics library's tick*/
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-   // tick.attach_ms(LVGL_TICK_PERIOD, lv_tick_handler);
+  // tick.attach_ms(LVGL_TICK_PERIOD, lv_tick_handler);
 #else
-    tick.start();
+  tick.start();
 #endif
 }
 
 /*********************************************************************************************\
  * Public
 \*********************************************************************************************/
-static lv_obj_t * bar;
-static lv_obj_t * spinner;
+static lv_obj_t *bar;
+static lv_obj_t *spinner;
 
 void HaspInitDriver(void)
 {
-    if (Settings.display_model != 4 || Settings.display_mode != 0) {
+  if (Settings.display_model != 4 || Settings.display_mode != 0)
+  {
     return;
   }
 
   AddLog_P(LOG_LEVEL_INFO, PSTR("HSP: Init Hasp Driver"));
   XdspCall(FUNC_DISPLAY_INIT_DRIVER);
 
-      /* Initialize the Virtual Device Buffers */
-    size_t guiVDBsize = 0;
-    lv_init();
-        static lv_disp_buf_t disp_buf;
- static lv_color_t * guiVdbBuffer1;
-    guiVDBsize    = 16 * 1024u; // 32 KBytes * 2
-    guiVdbBuffer1 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_8BIT);
-    lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
+  /* Initialize the Virtual Device Buffers */
+  size_t guiVDBsize = 0;
+  lv_init();
+  static lv_disp_buf_t disp_buf;
+  static lv_color_t *guiVdbBuffer1;
+  guiVDBsize = 16 * 1024u; // 32 KBytes * 2
+  guiVdbBuffer1 = (lv_color_t *)heap_caps_malloc(sizeof(lv_color_t) * guiVDBsize, MALLOC_CAP_8BIT);
+  lv_disp_buf_init(&disp_buf, guiVdbBuffer1, NULL, guiVDBsize);
 
-        AddLog_P(LOG_LEVEL_INFO, PSTR("Version  : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
-                PSTR(LVGL_VERSION_INFO));
+  AddLog_P(LOG_LEVEL_INFO, PSTR("Version  : %u.%u.%u %s"), LVGL_VERSION_MAJOR, LVGL_VERSION_MINOR, LVGL_VERSION_PATCH,
+           PSTR(LVGL_VERSION_INFO));
 
-    /* Initialize the display driver */
-    lv_disp_drv_t disp_drv;
-    lv_disp_drv_init(&disp_drv);
+  /* Initialize the display driver */
+  lv_disp_drv_t disp_drv;
+  lv_disp_drv_init(&disp_drv);
 
-    disp_drv.flush_cb = hasp_flush_cb;
+  disp_drv.flush_cb = hasp_flush_cb;
 
-    disp_drv.buffer = &disp_buf;
-    disp_drv.hor_res = 240;
-    disp_drv.ver_res = 320;
-    lv_disp_drv_register(&disp_drv);
-    guiStart();
+  disp_drv.buffer = &disp_buf;
+  disp_drv.hor_res = 240;
+  disp_drv.ver_res = 320;
+  lv_disp_drv_register(&disp_drv);
+  guiStart();
 
-    /* Initialize Global progress bar*/
-     bar = lv_bar_create(lv_layer_sys(), NULL);
-    lv_obj_set_hidden(bar, false);
-    lv_bar_set_range(bar, 0, 100);
-    lv_bar_set_value(bar, 10, LV_ANIM_OFF);
-    lv_obj_set_size(bar, 200, 15);
-    lv_obj_set_pos(bar, 20, 15);
-    lv_obj_align(bar, lv_layer_sys(), LV_ALIGN_CENTER, 0, -10);
-    // lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 1, 0};
-    // lv_obj_set_user_data(bar, udata);
-    lv_obj_set_style_local_value_color(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-    lv_obj_set_style_local_value_align(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
-    lv_obj_set_style_local_value_ofs_y(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, 20);
-    lv_obj_set_style_local_value_font(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_FONT_DEFAULT);
-    lv_obj_set_style_local_bg_color(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
-    lv_obj_set_style_local_bg_opa(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
+  /* Initialize Global progress bar*/
+  bar = lv_bar_create(lv_layer_sys(), NULL);
+  lv_obj_set_hidden(bar, false);
+  lv_bar_set_range(bar, 0, 100);
+  lv_bar_set_value(bar, 10, LV_ANIM_OFF);
+  lv_obj_set_size(bar, 200, 15);
+  lv_obj_set_pos(bar, 20, 15);
+  lv_obj_align(bar, lv_layer_sys(), LV_ALIGN_CENTER, 0, -10);
+  // lv_obj_user_data_t udata = (lv_obj_user_data_t){10, 1, 0};
+  // lv_obj_set_user_data(bar, udata);
+  lv_obj_set_style_local_value_color(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+  lv_obj_set_style_local_value_align(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_ALIGN_CENTER);
+  lv_obj_set_style_local_value_ofs_y(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, 20);
+  lv_obj_set_style_local_value_font(bar, LV_BAR_PART_BG, LV_STATE_DEFAULT, LV_FONT_DEFAULT);
+  lv_obj_set_style_local_bg_color(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_BLACK);
+  lv_obj_set_style_local_bg_opa(lv_layer_sys(), LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_0);
 
-    haspSetup();
-    dispatchSetup();
+  haspSetup();
+  dispatchSetup();
 
-    spinner = lv_spinner_create(get_page_obj(0), NULL);
-    lv_obj_t * cp = lv_cpicker_create(get_page_obj(1), NULL);
-    lv_obj_t * btn = lv_btn_create(get_page_obj(2), NULL);
-
+  spinner = lv_spinner_create(get_page_obj(0), NULL);
+  lv_obj_t *cp = lv_cpicker_create(get_page_obj(1), NULL);
+  lv_obj_t *btn = lv_btn_create(get_page_obj(2), NULL);
 }
 
 void HaspSetPower(void)
 {
-  disp_power = bitRead(XdrvMailbox.index, disp_device -1);
+  disp_power = bitRead(XdrvMailbox.index, disp_device - 1);
 
-//AddLog_P(LOG_LEVEL_DEBUG, PSTR("DSP: Power %d"), disp_power);
+  //AddLog_P(LOG_LEVEL_DEBUG, PSTR("DSP: Power %d"), disp_power);
 
-  if (Settings.display_model) {
-    if (!renderer) {
+  if (Settings.display_model)
+  {
+    if (!renderer)
+    {
       XdspCall(FUNC_DISPLAY_POWER);
-    } else {
+    }
+    else
+    {
       renderer->DisplayOnff(disp_power);
     }
   }
@@ -1398,13 +1611,14 @@ void CmndHasp(void)
     Settings.display_mode, Settings.display_dimmer, Settings.display_size, Settings.display_font,
     Settings.display_rotate, Settings.display_refresh, Settings.display_cols[0], Settings.display_cols[1], Settings.display_rows);
 */
-      Response_P(PSTR("{\"" D_PRFX_HASP "\":{}}"));
+  Response_P(PSTR("{\"" D_PRFX_HASP "\":{}}"));
 }
 
 void cmndHaspPage(void)
 {
-  if (XdrvMailbox.data_len > 0) {
-    AddLog_P(LOG_LEVEL_INFO, PSTR("HSP: Changing page to %d"),XdrvMailbox.payload);
+  if (XdrvMailbox.data_len > 0)
+  {
+    AddLog_P(LOG_LEVEL_INFO, PSTR("HSP: Changing page to %d"), XdrvMailbox.payload);
     haspSetPage(XdrvMailbox.payload);
   }
   Response_P(S_JSON_COMMAND_NVALUE, D_CMND_HASP_PAGE, haspGetPage());
@@ -1413,86 +1627,108 @@ void cmndHaspPage(void)
 void cmndHaspClearPage(void)
 {
   uint8_t page;
-  if (XdrvMailbox.payload > 0) {
-    page=XdrvMailbox.payload;
-  }else{
-    page=haspGetPage();
+  if (XdrvMailbox.payload > 0)
+  {
+    page = XdrvMailbox.payload;
+  }
+  else
+  {
+    page = haspGetPage();
   }
 
-  AddLog_P(LOG_LEVEL_DEBUG, PSTR("HSP: Clearing page %d"),XdrvMailbox.payload);
+  AddLog_P(LOG_LEVEL_DEBUG, PSTR("HSP: Clearing page %d"), XdrvMailbox.payload);
   haspClearPage(page);
 }
 
 void cmndHaspWakeUp(void)
 {
-    if (XdrvMailbox.payload > 0) {
-    AddLog_P(LOG_LEVEL_INFO, PSTR("HSP: set bar to %d"),XdrvMailbox.payload);
+  if (XdrvMailbox.payload > 0)
+  {
+    AddLog_P(LOG_LEVEL_INFO, PSTR("HSP: set bar to %d"), XdrvMailbox.payload);
   }
-  if (bar) { lv_bar_set_value(bar, XdrvMailbox.payload,true);}
+  if (bar)
+  {
+    lv_bar_set_value(bar, XdrvMailbox.payload, true);
+  }
   ResponseCmndNumber(XdrvMailbox.payload);
 }
 
 void cmndHaspLight(void)
 {
 #ifdef USE_DISPLAY_MODES1TO5
-/*     Matrix               LCD / Oled                           TFT
+  /*     Matrix               LCD / Oled                           TFT
  * 1 = Text up and time     Time
  * 2 = Date                 Local sensors                        Local sensors
  * 3 = Day                  Local sensors and time               Local sensors and time
  * 4 = Mqtt left and time   Mqtt (incl local) sensors            Mqtt (incl local) sensors
  * 5 = Mqtt up and time     Mqtt (incl local) sensors and time   Mqtt (incl local) sensors and time
 */
-  if ((XdrvMailbox.payload >= 0) && (XdrvMailbox.payload <= 5)) {
+  if ((XdrvMailbox.payload >= 0) && (XdrvMailbox.payload <= 5))
+  {
     uint32_t last_display_mode = Settings.display_mode;
     Settings.display_mode = XdrvMailbox.payload;
 
-    if (disp_subscribed != (Settings.display_mode &0x04)) {
-      TasmotaGlobal.restart_flag = 2;  // Restart to Add/Remove MQTT subscribe
-    } else {
-      if (last_display_mode && !Settings.display_mode) {  // Switch to mode 0
+    if (disp_subscribed != (Settings.display_mode & 0x04))
+    {
+      TasmotaGlobal.restart_flag = 2; // Restart to Add/Remove MQTT subscribe
+    }
+    else
+    {
+      if (last_display_mode && !Settings.display_mode)
+      { // Switch to mode 0
         DisplayInit(DISPLAY_INIT_MODE);
-        if (renderer) renderer->fillScreen(bg_color);
-        else DisplayClear();
-      } else {
+        if (renderer)
+          renderer->fillScreen(bg_color);
+        else
+          DisplayClear();
+      }
+      else
+      {
         DisplayLogBufferInit();
         DisplayInit(DISPLAY_INIT_MODE);
       }
     }
   }
-#endif  // USE_DISPLAY_MODES1TO5
+#endif // USE_DISPLAY_MODES1TO5
   ResponseCmndNumber(Settings.display_mode);
 }
 
 void cmndHaspDim(void)
 {
-  if ((XdrvMailbox.payload >= 0) && (XdrvMailbox.payload <= 100)) {
-    Settings.display_dimmer = ((XdrvMailbox.payload +1) * 100) / 666;  // Correction for Domoticz (0 - 15)
-    if (Settings.display_dimmer && !(disp_power)) {
+  if ((XdrvMailbox.payload >= 0) && (XdrvMailbox.payload <= 100))
+  {
+    Settings.display_dimmer = ((XdrvMailbox.payload + 1) * 100) / 666; // Correction for Domoticz (0 - 15)
+    if (Settings.display_dimmer && !(disp_power))
+    {
       ExecuteCommandPower(disp_device, POWER_ON, SRC_DISPLAY);
     }
-    else if (!Settings.display_dimmer && disp_power) {
+    else if (!Settings.display_dimmer && disp_power)
+    {
       ExecuteCommandPower(disp_device, POWER_OFF, SRC_DISPLAY);
     }
-    if (renderer) renderer->dim(Settings.display_dimmer);
+    if (renderer)
+      renderer->dim(Settings.display_dimmer);
   }
   ResponseCmndNumber(Settings.display_dimmer);
 }
 
 void cmndHaspJson(void)
 {
-  dispatch_topic_payload(XdrvMailbox.command+4,XdrvMailbox.data);
+  dispatch_topic_payload(XdrvMailbox.command + 4, XdrvMailbox.data);
 }
 
 void cmndHaspJsonl(void)
 {
-  dispatch_topic_payload(XdrvMailbox.command+4,XdrvMailbox.data);
+  dispatch_topic_payload(XdrvMailbox.command + 4, XdrvMailbox.data);
 }
 
 void cmndHaspCalibrate(void)
 {
-  if ((XdrvMailbox.payload >= 0) && (XdrvMailbox.payload < 4)) {
-    if (Settings.display_rotate != XdrvMailbox.payload) {
-/*
+  if ((XdrvMailbox.payload >= 0) && (XdrvMailbox.payload < 4))
+  {
+    if (Settings.display_rotate != XdrvMailbox.payload)
+    {
+      /*
       // Needs font info regarding height and width
       if ((Settings.display_rotate &1) != (XdrvMailbox.payload &1)) {
         uint8_t temp_rows = Settings.display_rows;
@@ -1507,7 +1743,7 @@ void cmndHaspCalibrate(void)
       DisplayInit(DISPLAY_INIT_MODE);
 #ifdef USE_DISPLAY_MODES1TO5
       DisplayLogBufferInit();
-#endif  // USE_DISPLAY_MODES1TO5
+#endif // USE_DISPLAY_MODES1TO5
     }
   }
   ResponseCmndNumber(Settings.display_rotate);
@@ -1520,8 +1756,8 @@ void cmndHaspCalibrate(void)
 #ifdef JPEG_PICTS
 #include "img_converters.h"
 #include "esp_jpg_decode.h"
-bool jpg2rgb888(const uint8_t *src, size_t src_len, uint8_t * out, jpg_scale_t scale);
-char get_jpeg_size(unsigned char* data, unsigned int data_size, unsigned short *width, unsigned short *height);
+bool jpg2rgb888(const uint8_t *src, size_t src_len, uint8_t *out, jpg_scale_t scale);
+char get_jpeg_size(unsigned char *data, unsigned int data_size, unsigned short *width, unsigned short *height);
 void rgb888_to_565(uint8_t *in, uint16_t *out, uint32_t len);
 #endif // JPEG_PICTS
 #endif // ESP32
@@ -1529,44 +1765,54 @@ void rgb888_to_565(uint8_t *in, uint16_t *out, uint32_t len);
 #if defined(USE_SCRIPT_FATFS) && defined(USE_SCRIPT)
 extern FS *fsp;
 #define XBUFF_LEN 128
-void Draw_RGB_Bitmap(char *file,uint16_t xp, uint16_t yp) {
-  if (!renderer) return;
+void Draw_RGB_Bitmap(char *file, uint16_t xp, uint16_t yp)
+{
+  if (!renderer)
+    return;
   File fp;
-  char *ending = strrchr(file,'.');
-  if (!ending) return;
+  char *ending = strrchr(file, '.');
+  if (!ending)
+    return;
   ending++;
   char estr[8];
-  memset(estr,0,sizeof(estr));
-  for (uint32_t cnt=0; cnt<strlen(ending); cnt++) {
-    estr[cnt]=tolower(ending[cnt]);
+  memset(estr, 0, sizeof(estr));
+  for (uint32_t cnt = 0; cnt < strlen(ending); cnt++)
+  {
+    estr[cnt] = tolower(ending[cnt]);
   }
 
-  if (!strcmp(estr,"rgb")) {
+  if (!strcmp(estr, "rgb"))
+  {
     // special rgb format
-    fp=fsp->open(file,FILE_READ);
-    if (!fp) return;
+    fp = fsp->open(file, FILE_READ);
+    if (!fp)
+      return;
     uint16_t xsize;
-    fp.read((uint8_t*)&xsize,2);
+    fp.read((uint8_t *)&xsize, 2);
     uint16_t ysize;
-    fp.read((uint8_t*)&ysize,2);
+    fp.read((uint8_t *)&ysize, 2);
 #if 1
-    renderer->setAddrWindow(xp,yp,xp+xsize,yp+ysize);
+    renderer->setAddrWindow(xp, yp, xp + xsize, yp + ysize);
     uint16_t rgb[xsize];
-    for (int16_t j=0; j<ysize; j++) {
-    //  for(int16_t i=0; i<xsize; i+=XBUFF_LEN) {
-        fp.read((uint8_t*)rgb,xsize*2);
-        renderer->pushColors(rgb,xsize,true);
-    //  }
+    for (int16_t j = 0; j < ysize; j++)
+    {
+      //  for(int16_t i=0; i<xsize; i+=XBUFF_LEN) {
+      fp.read((uint8_t *)rgb, xsize * 2);
+      renderer->pushColors(rgb, xsize, true);
+      //  }
       OsWatchLoop();
     }
-    renderer->setAddrWindow(0,0,0,0);
+    renderer->setAddrWindow(0, 0, 0, 0);
 #else
-    for(int16_t j=0; j<ysize; j++) {
-      for(int16_t i=0; i<xsize; i++ ) {
+    for (int16_t j = 0; j < ysize; j++)
+    {
+      for (int16_t i = 0; i < xsize; i++)
+      {
         uint16_t rgb;
-        uint8_t res=fp.read((uint8_t*)&rgb,2);
-        if (!res) break;
-        renderer->writePixel(xp+i,yp,rgb);
+        uint8_t res = fp.read((uint8_t *)&rgb, 2);
+        if (!res)
+          break;
+        renderer->writePixel(xp + i, yp, rgb);
       }
       delay(0);
       OsWatchLoop();
@@ -1574,38 +1820,48 @@ void Draw_RGB_Bitmap(char *file,uint16_t xp, uint16_t yp) {
     }
 #endif
     fp.close();
-  } else if (!strcmp(estr,"jpg")) {
+  }
+  else if (!strcmp(estr, "jpg"))
+  {
     // jpeg files on ESP32 with more memory
 #ifdef ESP32
 #ifdef JPEG_PICTS
-    if (psramFound()) {
-      fp=fsp->open(file,FILE_READ);
-      if (!fp) return;
+    if (psramFound())
+    {
+      fp = fsp->open(file, FILE_READ);
+      if (!fp)
+        return;
       uint32_t size = fp.size();
-      uint8_t *mem = (uint8_t *)heap_caps_malloc(size+4, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-      if (mem) {
-        uint8_t res=fp.read(mem, size);
-        if (res) {
+      uint8_t *mem = (uint8_t *)heap_caps_malloc(size + 4, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+      if (mem)
+      {
+        uint8_t res = fp.read(mem, size);
+        if (res)
+        {
           uint16_t xsize;
           uint16_t ysize;
-          if (mem[0]==0xff && mem[1]==0xd8) {
+          if (mem[0] == 0xff && mem[1] == 0xd8)
+          {
             get_jpeg_size(mem, size, &xsize, &ysize);
             //Serial.printf(" x,y %d - %d\n",xsize, ysize );
-            if (xsize && ysize) {
-              uint8_t *out_buf = (uint8_t *)heap_caps_malloc((xsize*ysize*3)+4, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
-              if (out_buf) {
-                uint8_t *ob=out_buf;
+            if (xsize && ysize)
+            {
+              uint8_t *out_buf = (uint8_t *)heap_caps_malloc((xsize * ysize * 3) + 4, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+              if (out_buf)
+              {
+                uint8_t *ob = out_buf;
                 jpg2rgb888(mem, size, out_buf, (jpg_scale_t)JPG_SCALE_NONE);
-                uint16_t pixels=xsize*ysize/XBUFF_LEN;
-                renderer->setAddrWindow(xp,yp,xp+xsize,yp+ysize);
-                for(int32_t j=0; j<pixels; j++) {
-                  uint16_t rbuff[XBUFF_LEN*2];
+                uint16_t pixels = xsize * ysize / XBUFF_LEN;
+                renderer->setAddrWindow(xp, yp, xp + xsize, yp + ysize);
+                for (int32_t j = 0; j < pixels; j++)
+                {
+                  uint16_t rbuff[XBUFF_LEN * 2];
                   rgb888_to_565(ob, rbuff, XBUFF_LEN);
-                  ob+=XBUFF_LEN*3;
-                  renderer->pushColors(rbuff,XBUFF_LEN,true);
+                  ob += XBUFF_LEN * 3;
+                  renderer->pushColors(rbuff, XBUFF_LEN, true);
                   OsWatchLoop();
                 }
-                renderer->setAddrWindow(0,0,0,0);
+                renderer->setAddrWindow(0, 0, 0, 0);
                 free(out_buf);
               }
             }
@@ -1629,53 +1885,61 @@ void Draw_RGB_Bitmap(char *file,uint16_t xp, uint16_t yp) {
 #endif
 
 // draw analog watch, just for fun
-void DrawAClock(uint16_t rad) {
-    if (!renderer) return;
-    float frad=rad;
-    uint16_t hred=frad/3.0;
-    renderer->fillCircle(disp_xpos, disp_ypos, rad, bg_color);
-    renderer->drawCircle(disp_xpos, disp_ypos, rad, fg_color);
-    renderer->fillCircle(disp_xpos, disp_ypos, 4, fg_color);
-    for (uint8_t count=0; count<60; count+=5) {
-      float p1=((float)count*(pi/30)-(pi/2));
-      uint8_t len;
-      if ((count%15)==0) {
-        len=4;
-      } else {
-        len=2;
-      }
-      renderer->writeLine(disp_xpos+((float)(rad-len)*cosf(p1)), disp_ypos+((float)(rad-len)*sinf(p1)), disp_xpos+(frad*cosf(p1)), disp_ypos+(frad*sinf(p1)), fg_color);
+void DrawAClock(uint16_t rad)
+{
+  if (!renderer)
+    return;
+  float frad = rad;
+  uint16_t hred = frad / 3.0;
+  renderer->fillCircle(disp_xpos, disp_ypos, rad, bg_color);
+  renderer->drawCircle(disp_xpos, disp_ypos, rad, fg_color);
+  renderer->fillCircle(disp_xpos, disp_ypos, 4, fg_color);
+  for (uint8_t count = 0; count < 60; count += 5)
+  {
+    float p1 = ((float)count * (pi / 30) - (pi / 2));
+    uint8_t len;
+    if ((count % 15) == 0)
+    {
+      len = 4;
     }
+    else
+    {
+      len = 2;
+    }
+    renderer->writeLine(disp_xpos + ((float)(rad - len) * cosf(p1)), disp_ypos + ((float)(rad - len) * sinf(p1)), disp_xpos + (frad * cosf(p1)), disp_ypos + (frad * sinf(p1)), fg_color);
+  }
 
-    // hour
-    float hour=((float)RtcTime.hour*60.0+(float)RtcTime.minute)/60.0;
-    float temp=(hour*(pi/6.0)-(pi/2.0));
-    renderer->writeLine(disp_xpos, disp_ypos,disp_xpos+(frad-hred)*cosf(temp),disp_ypos+(frad-hred)*sinf(temp), fg_color);
+  // hour
+  float hour = ((float)RtcTime.hour * 60.0 + (float)RtcTime.minute) / 60.0;
+  float temp = (hour * (pi / 6.0) - (pi / 2.0));
+  renderer->writeLine(disp_xpos, disp_ypos, disp_xpos + (frad - hred) * cosf(temp), disp_ypos + (frad - hred) * sinf(temp), fg_color);
 
-    // minute
-    temp=((float)RtcTime.minute*(pi/30.0)-(pi/2.0));
-    renderer->writeLine(disp_xpos, disp_ypos,disp_xpos+(frad-MINUTE_REDUCT)*cosf(temp),disp_ypos+(frad-MINUTE_REDUCT)*sinf(temp), fg_color);
+  // minute
+  temp = ((float)RtcTime.minute * (pi / 30.0) - (pi / 2.0));
+  renderer->writeLine(disp_xpos, disp_ypos, disp_xpos + (frad - MINUTE_REDUCT) * cosf(temp), disp_ypos + (frad - MINUTE_REDUCT) * sinf(temp), fg_color);
 }
 #endif // USE_AWATCH
 
-
 #ifdef USE_GRAPH
 
-typedef union {
+typedef union
+{
   uint8_t data;
-  struct {
-      uint8_t overlay : 1;
-      uint8_t draw : 1;
-      uint8_t nu3 : 1;
-      uint8_t nu4 : 1;
-      uint8_t nu5 : 1;
-      uint8_t nu6 : 1;
-      uint8_t nu7 : 1;
-      uint8_t nu8 : 1;
+  struct
+  {
+    uint8_t overlay : 1;
+    uint8_t draw : 1;
+    uint8_t nu3 : 1;
+    uint8_t nu4 : 1;
+    uint8_t nu5 : 1;
+    uint8_t nu6 : 1;
+    uint8_t nu7 : 1;
+    uint8_t nu8 : 1;
   };
 } GFLAGS;
 
-struct GRAPH {
+struct GRAPH
+{
   uint16_t xp;
   uint16_t yp;
   uint16_t xs;
@@ -1683,7 +1947,7 @@ struct GRAPH {
   float ymin;
   float ymax;
   float range;
-  uint32_t x_time;       // time per x slice in milliseconds
+  uint32_t x_time; // time per x slice in milliseconds
   uint32_t last_ms;
   uint32_t last_ms_redrawn;
   int16_t decimation; // decimation or graph duration in minutes
@@ -1698,131 +1962,160 @@ struct GRAPH {
   GFLAGS flags;
 };
 
-
 struct GRAPH *graph[NUM_GRAPHS];
 
 #define TICKLEN 4
-void ClrGraph(uint16_t num) {
-  struct GRAPH *gp=graph[num];
+void ClrGraph(uint16_t num)
+{
+  struct GRAPH *gp = graph[num];
 
-  uint16_t xticks=gp->xticks;
-  uint16_t yticks=gp->yticks;
+  uint16_t xticks = gp->xticks;
+  uint16_t yticks = gp->yticks;
   uint16_t count;
 
   // clr inside, but only 1.graph if overlapped
-  if (gp->flags.overlay) return;
+  if (gp->flags.overlay)
+    return;
 
-  renderer->fillRect(gp->xp+1,gp->yp+1,gp->xs-2,gp->ys-2,bg_color);
+  renderer->fillRect(gp->xp + 1, gp->yp + 1, gp->xs - 2, gp->ys - 2, bg_color);
 
-  if (xticks) {
-    float cxp=gp->xp,xd=(float)gp->xs/(float)xticks;
-    for (count=0; count<xticks; count++) {
-      renderer->writeFastVLine(cxp,gp->yp+gp->ys-TICKLEN,TICKLEN,fg_color);
-      cxp+=xd;
+  if (xticks)
+  {
+    float cxp = gp->xp, xd = (float)gp->xs / (float)xticks;
+    for (count = 0; count < xticks; count++)
+    {
+      renderer->writeFastVLine(cxp, gp->yp + gp->ys - TICKLEN, TICKLEN, fg_color);
+      cxp += xd;
     }
   }
-  if (yticks) {
-    if (gp->ymin<0 && gp->ymax>0) {
+  if (yticks)
+  {
+    if (gp->ymin < 0 && gp->ymax > 0)
+    {
       // draw zero seperator
-      float cxp=0;
-      float czp=gp->yp+(gp->ymax/gp->range);
-      while (cxp<gp->xs) {
-        renderer->writeFastHLine(gp->xp+cxp,czp,2,fg_color);
-        cxp+=6.0;
+      float cxp = 0;
+      float czp = gp->yp + (gp->ymax / gp->range);
+      while (cxp < gp->xs)
+      {
+        renderer->writeFastHLine(gp->xp + cxp, czp, 2, fg_color);
+        cxp += 6.0;
       }
       // align ticks to zero line
-      float cyp=0,yd=gp->ys/yticks;
-      for (count=0; count<yticks; count++) {
-        if ((czp-cyp)>gp->yp) {
-          renderer->writeFastHLine(gp->xp,czp-cyp,TICKLEN,fg_color);
-          renderer->writeFastHLine(gp->xp+gp->xs-TICKLEN,czp-cyp,TICKLEN,fg_color);
+      float cyp = 0, yd = gp->ys / yticks;
+      for (count = 0; count < yticks; count++)
+      {
+        if ((czp - cyp) > gp->yp)
+        {
+          renderer->writeFastHLine(gp->xp, czp - cyp, TICKLEN, fg_color);
+          renderer->writeFastHLine(gp->xp + gp->xs - TICKLEN, czp - cyp, TICKLEN, fg_color);
         }
-        if ((czp+cyp)<(gp->yp+gp->ys)) {
-          renderer->writeFastHLine(gp->xp,czp+cyp,TICKLEN,fg_color);
-          renderer->writeFastHLine(gp->xp+gp->xs-TICKLEN,czp+cyp,TICKLEN,fg_color);
+        if ((czp + cyp) < (gp->yp + gp->ys))
+        {
+          renderer->writeFastHLine(gp->xp, czp + cyp, TICKLEN, fg_color);
+          renderer->writeFastHLine(gp->xp + gp->xs - TICKLEN, czp + cyp, TICKLEN, fg_color);
         }
-        cyp+=yd;
+        cyp += yd;
       }
-    } else {
-      float cyp=gp->yp,yd=gp->ys/yticks;
-      for (count=0; count<yticks; count++) {
-        renderer->writeFastHLine(gp->xp,cyp,TICKLEN,fg_color);
-        renderer->writeFastHLine(gp->xp+gp->xs-TICKLEN,cyp,TICKLEN,fg_color);
-        cyp+=yd;
+    }
+    else
+    {
+      float cyp = gp->yp, yd = gp->ys / yticks;
+      for (count = 0; count < yticks; count++)
+      {
+        renderer->writeFastHLine(gp->xp, cyp, TICKLEN, fg_color);
+        renderer->writeFastHLine(gp->xp + gp->xs - TICKLEN, cyp, TICKLEN, fg_color);
+        cyp += yd;
       }
     }
   }
 }
 
 // define a graph
-void DefineGraph(uint16_t num,uint16_t xp,uint16_t yp,int16_t xs,uint16_t ys,int16_t dec,float ymin, float ymax,uint8_t icol) {
-  if (!renderer) return;
-  uint8_t rflg=0;
-  if (xs<0) {
-    rflg=1;
-    xs=abs(xs);
+void DefineGraph(uint16_t num, uint16_t xp, uint16_t yp, int16_t xs, uint16_t ys, int16_t dec, float ymin, float ymax, uint8_t icol)
+{
+  if (!renderer)
+    return;
+  uint8_t rflg = 0;
+  if (xs < 0)
+  {
+    rflg = 1;
+    xs = abs(xs);
   }
   struct GRAPH *gp;
   uint16_t count;
-  uint16_t index=num%NUM_GRAPHS;
-  if (!graph[index]) {
-    gp=(struct GRAPH*)calloc(sizeof(struct GRAPH),1);
-    if (!gp) return;
-    graph[index]=gp;
-  } else {
-    gp=graph[index];
-    if (rflg) {
-      RedrawGraph(index,1);
+  uint16_t index = num % NUM_GRAPHS;
+  if (!graph[index])
+  {
+    gp = (struct GRAPH *)calloc(sizeof(struct GRAPH), 1);
+    if (!gp)
+      return;
+    graph[index] = gp;
+  }
+  else
+  {
+    gp = graph[index];
+    if (rflg)
+    {
+      RedrawGraph(index, 1);
       return;
     }
   }
 
   // 6 bits per axis
-  gp->xticks=(num>>4)&0x3f;
-  gp->yticks=(num>>10)&0x3f;
-  gp->xp=xp;
-  gp->yp=yp;
-  gp->xs=xs;
-  gp->ys=ys;
-  if (!dec) dec=1;
-  gp->decimation=dec;
-  if (dec>0) {
+  gp->xticks = (num >> 4) & 0x3f;
+  gp->yticks = (num >> 10) & 0x3f;
+  gp->xp = xp;
+  gp->yp = yp;
+  gp->xs = xs;
+  gp->ys = ys;
+  if (!dec)
+    dec = 1;
+  gp->decimation = dec;
+  if (dec > 0)
+  {
     // is minutes per sweep prepare timing parameters in ms
-    gp->x_time=((float)dec*60000.0)/(float)xs;
-    gp->last_ms=millis()+gp->x_time;
+    gp->x_time = ((float)dec * 60000.0) / (float)xs;
+    gp->last_ms = millis() + gp->x_time;
   }
-  gp->ymin=ymin;
-  gp->ymax=ymax;
-  gp->range=(ymax-ymin)/ys;
-  gp->xcnt=0;
-  gp->dcnt=0;
-  gp->summ=0;
-  if (gp->values) free(gp->values);
-  gp->values=(uint8_t*) calloc(1,xs+2);
-  if (!gp->values) {
+  gp->ymin = ymin;
+  gp->ymax = ymax;
+  gp->range = (ymax - ymin) / ys;
+  gp->xcnt = 0;
+  gp->dcnt = 0;
+  gp->summ = 0;
+  if (gp->values)
+    free(gp->values);
+  gp->values = (uint8_t *)calloc(1, xs + 2);
+  if (!gp->values)
+  {
     free(gp);
-    graph[index]=0;
+    graph[index] = 0;
     return;
   }
   // start from zero
-  gp->values[0]=0;
+  gp->values[0] = 0;
 
-  gp->last_ms_redrawn=millis();
+  gp->last_ms_redrawn = millis();
 
-  if (!icol) icol=1;
-  gp->color_index=icol;
-  gp->flags.overlay=0;
-  gp->flags.draw=1;
+  if (!icol)
+    icol = 1;
+  gp->color_index = icol;
+  gp->flags.overlay = 0;
+  gp->flags.draw = 1;
 
   // check if previous graph has same coordinates
-  if (index>0) {
-    for (uint8_t count=0; count<index; count++) {
-      if (graph[count]) {
+  if (index > 0)
+  {
+    for (uint8_t count = 0; count < index; count++)
+    {
+      if (graph[count])
+      {
         // a previous graph is defined, compare
         // assume the same if corner is identical
-        struct GRAPH *gp1=graph[count];
-        if ((gp->xp==gp1->xp) && (gp->yp==gp1->yp)) {
-          gp->flags.overlay=1;
+        struct GRAPH *gp1 = graph[count];
+        if ((gp->xp == gp1->xp) && (gp->yp == gp1->yp))
+        {
+          gp->flags.overlay = 1;
           break;
         }
       }
@@ -1830,212 +2123,263 @@ void DefineGraph(uint16_t num,uint16_t xp,uint16_t yp,int16_t xs,uint16_t ys,int
   }
 
   // draw rectangle
-  renderer->drawRect(xp,yp,xs,ys,fg_color);
+  renderer->drawRect(xp, yp, xs, ys, fg_color);
   // clr inside
   ClrGraph(index);
-
 }
 
 // check if to advance GRAPH
-void TempCheckGraph() {
+void TempCheckGraph()
+{
   int16_t count;
   struct GRAPH *gp;
-  for (count=0;count<NUM_GRAPHS;count++) {
-    gp=graph[count];
-    if (gp) {
-      if (gp->decimation>0) {
+  for (count = 0; count < NUM_GRAPHS; count++)
+  {
+    gp = graph[count];
+    if (gp)
+    {
+      if (gp->decimation > 0)
+      {
         // if time over add value
-        while (millis()>gp->last_ms) {
-          gp->last_ms+=gp->x_time;
+        while (millis() > gp->last_ms)
+        {
+          gp->last_ms += gp->x_time;
           uint8_t val;
-          if (gp->dcnt) {
-            val=gp->summ/gp->dcnt;
-            gp->dcnt=0;
-            gp->summ=0;
-            gp->last_val=val;
-          } else {
-            val=gp->last_val;
+          if (gp->dcnt)
+          {
+            val = gp->summ / gp->dcnt;
+            gp->dcnt = 0;
+            gp->summ = 0;
+            gp->last_val = val;
           }
-          AddGraph(count,val);
+          else
+          {
+            val = gp->last_val;
+          }
+          AddGraph(count, val);
         }
       }
     }
   }
 }
 
-
 #if defined(USE_SCRIPT_FATFS) && defined(USE_SCRIPT)
 #ifdef ESP32
 #include <SD.h>
 #endif
 
-void Save_graph(uint8_t num, char *path) {
-  if (!renderer) return;
-  uint16_t index=num%NUM_GRAPHS;
-  struct GRAPH *gp=graph[index];
-  if (!gp) return;
+void Save_graph(uint8_t num, char *path)
+{
+  if (!renderer)
+    return;
+  uint16_t index = num % NUM_GRAPHS;
+  struct GRAPH *gp = graph[index];
+  if (!gp)
+    return;
   File fp;
   fsp->remove(path);
-  fp=fsp->open(path,FILE_WRITE);
-  if (!fp) return;
+  fp = fsp->open(path, FILE_WRITE);
+  if (!fp)
+    return;
   char str[32];
-  sprintf_P(str,PSTR("%d\t%d\t%d\t"),gp->xcnt,gp->xs,gp->ys);
+  sprintf_P(str, PSTR("%d\t%d\t%d\t"), gp->xcnt, gp->xs, gp->ys);
   fp.print(str);
-  dtostrfd(gp->ymin,2,str);
-  fp.print(str);
-  fp.print("\t");
-  dtostrfd(gp->ymax,2,str);
+  dtostrfd(gp->ymin, 2, str);
   fp.print(str);
   fp.print("\t");
-  for (uint32_t count=0;count<gp->xs;count++) {
-    dtostrfd(gp->values[count],0,str);
+  dtostrfd(gp->ymax, 2, str);
+  fp.print(str);
+  fp.print("\t");
+  for (uint32_t count = 0; count < gp->xs; count++)
+  {
+    dtostrfd(gp->values[count], 0, str);
     fp.print(str);
     fp.print("\t");
   }
   fp.print("\n");
   fp.close();
 }
-void Restore_graph(uint8_t num, char *path) {
-  if (!renderer) return;
-  uint16_t index=num%NUM_GRAPHS;
-  struct GRAPH *gp=graph[index];
-  if (!gp) return;
+void Restore_graph(uint8_t num, char *path)
+{
+  if (!renderer)
+    return;
+  uint16_t index = num % NUM_GRAPHS;
+  struct GRAPH *gp = graph[index];
+  if (!gp)
+    return;
   File fp;
-  fp=fsp->open(path,FILE_READ);
-  if (!fp) return;
+  fp = fsp->open(path, FILE_READ);
+  if (!fp)
+    return;
   char vbuff[32];
-  char *cp=vbuff;
+  char *cp = vbuff;
   uint8_t buf[2];
-  uint8_t findex=0;
+  uint8_t findex = 0;
 
-  for (uint32_t count=0;count<=gp->xs+4;count++) {
-    cp=vbuff;
-    findex=0;
-    while (fp.available()) {
-      fp.read(buf,1);
-      if (buf[0]=='\t' || buf[0]==',' || buf[0]=='\n' || buf[0]=='\r') {
+  for (uint32_t count = 0; count <= gp->xs + 4; count++)
+  {
+    cp = vbuff;
+    findex = 0;
+    while (fp.available())
+    {
+      fp.read(buf, 1);
+      if (buf[0] == '\t' || buf[0] == ',' || buf[0] == '\n' || buf[0] == '\r')
+      {
         break;
-      } else {
-        *cp++=buf[0];
+      }
+      else
+      {
+        *cp++ = buf[0];
         findex++;
-        if (findex>=sizeof(vbuff)-1) break;
+        if (findex >= sizeof(vbuff) - 1)
+          break;
       }
     }
-    *cp=0;
-    if (count<=4) {
-      if (count==0) gp->xcnt=atoi(vbuff);
-    } else {
-      gp->values[count-5]=atoi(vbuff);
+    *cp = 0;
+    if (count <= 4)
+    {
+      if (count == 0)
+        gp->xcnt = atoi(vbuff);
+    }
+    else
+    {
+      gp->values[count - 5] = atoi(vbuff);
     }
   }
   fp.close();
-  RedrawGraph(num,1);
+  RedrawGraph(num, 1);
 }
 #endif // USE_SCRIPT_FATFS
 
-void RedrawGraph(uint8_t num, uint8_t flags) {
-  uint16_t index=num%NUM_GRAPHS;
-  struct GRAPH *gp=graph[index];
-  if (!gp) return;
-  if (!flags) {
-    gp->flags.draw=0;
+void RedrawGraph(uint8_t num, uint8_t flags)
+{
+  uint16_t index = num % NUM_GRAPHS;
+  struct GRAPH *gp = graph[index];
+  if (!gp)
+    return;
+  if (!flags)
+  {
+    gp->flags.draw = 0;
     return;
   }
-  if (!renderer) return;
+  if (!renderer)
+    return;
 
-  gp->flags.draw=1;
-  uint16_t linecol=fg_color;
+  gp->flags.draw = 1;
+  uint16_t linecol = fg_color;
 
-  if (color_type==COLOR_COLOR) {
-    linecol=renderer->GetColorFromIndex(gp->color_index);
+  if (color_type == COLOR_COLOR)
+  {
+    linecol = renderer->GetColorFromIndex(gp->color_index);
   }
 
-  if (!gp->flags.overlay) {
+  if (!gp->flags.overlay)
+  {
     // draw rectangle
-    renderer->drawRect(gp->xp,gp->yp,gp->xs,gp->ys,fg_color);
+    renderer->drawRect(gp->xp, gp->yp, gp->xs, gp->ys, fg_color);
     // clr inside
     ClrGraph(index);
   }
 
-  for (uint16_t count=0;count<gp->xs-1;count++) {
-    renderer->writeLine(gp->xp+count,gp->yp+gp->ys-gp->values[count]-1,gp->xp+count+1,gp->yp+gp->ys-gp->values[count+1]-1,linecol);
+  for (uint16_t count = 0; count < gp->xs - 1; count++)
+  {
+    renderer->writeLine(gp->xp + count, gp->yp + gp->ys - gp->values[count] - 1, gp->xp + count + 1, gp->yp + gp->ys - gp->values[count + 1] - 1, linecol);
   }
 }
 
 // add next value to graph
-void AddGraph(uint8_t num,uint8_t val) {
-  struct GRAPH *gp=graph[num];
-  if (!renderer) return;
+void AddGraph(uint8_t num, uint8_t val)
+{
+  struct GRAPH *gp = graph[num];
+  if (!renderer)
+    return;
 
-  uint16_t linecol=fg_color;
-  if (color_type==COLOR_COLOR) {
-    linecol=renderer->GetColorFromIndex(gp->color_index);
+  uint16_t linecol = fg_color;
+  if (color_type == COLOR_COLOR)
+  {
+    linecol = renderer->GetColorFromIndex(gp->color_index);
   }
   gp->xcnt++;
-  if (gp->xcnt>gp->xs) {
-    gp->xcnt=gp->xs;
+  if (gp->xcnt > gp->xs)
+  {
+    gp->xcnt = gp->xs;
     int16_t count;
     // shift values
-    for (count=0;count<gp->xs-1;count++) {
-      gp->values[count]=gp->values[count+1];
+    for (count = 0; count < gp->xs - 1; count++)
+    {
+      gp->values[count] = gp->values[count + 1];
     }
-    gp->values[gp->xcnt-1]=val;
+    gp->values[gp->xcnt - 1] = val;
 
-    if (!gp->flags.draw) return;
+    if (!gp->flags.draw)
+      return;
 
     // only redraw every second or longer
-    if (millis()-gp->last_ms_redrawn>1000) {
-      gp->last_ms_redrawn=millis();
+    if (millis() - gp->last_ms_redrawn > 1000)
+    {
+      gp->last_ms_redrawn = millis();
       // clr area and redraw graph
-      if (!gp->flags.overlay) {
+      if (!gp->flags.overlay)
+      {
         // draw rectangle
-        renderer->drawRect(gp->xp,gp->yp,gp->xs,gp->ys,fg_color);
+        renderer->drawRect(gp->xp, gp->yp, gp->xs, gp->ys, fg_color);
         // clr inner and draw ticks
         ClrGraph(num);
       }
 
-      for (count=0;count<gp->xs-1;count++) {
-        renderer->writeLine(gp->xp+count,gp->yp+gp->ys-gp->values[count]-1,gp->xp+count+1,gp->yp+gp->ys-gp->values[count+1]-1,linecol);
+      for (count = 0; count < gp->xs - 1; count++)
+      {
+        renderer->writeLine(gp->xp + count, gp->yp + gp->ys - gp->values[count] - 1, gp->xp + count + 1, gp->yp + gp->ys - gp->values[count + 1] - 1, linecol);
       }
     }
-  } else {
+  }
+  else
+  {
     // add value and draw a single line
-    gp->values[gp->xcnt]=val;
-    if (!gp->flags.draw) return;
-    renderer->writeLine(gp->xp+gp->xcnt-1,gp->yp+gp->ys-gp->values[gp->xcnt-1]-1,gp->xp+gp->xcnt,gp->yp+gp->ys-gp->values[gp->xcnt]-1,linecol);
+    gp->values[gp->xcnt] = val;
+    if (!gp->flags.draw)
+      return;
+    renderer->writeLine(gp->xp + gp->xcnt - 1, gp->yp + gp->ys - gp->values[gp->xcnt - 1] - 1, gp->xp + gp->xcnt, gp->yp + gp->ys - gp->values[gp->xcnt] - 1, linecol);
   }
 }
 
-
 // add next value
-void AddValue(uint8_t num,float fval) {
+void AddValue(uint8_t num, float fval)
+{
   // not yet defined ???
-  num=num%NUM_GRAPHS;
-  struct GRAPH *gp=graph[num];
-  if (!gp) return;
+  num = num % NUM_GRAPHS;
+  struct GRAPH *gp = graph[num];
+  if (!gp)
+    return;
 
-  if (fval>gp->ymax) fval=gp->ymax;
-  if (fval<gp->ymin) fval=gp->ymin;
+  if (fval > gp->ymax)
+    fval = gp->ymax;
+  if (fval < gp->ymin)
+    fval = gp->ymin;
 
   int16_t val;
-  val=(fval-gp->ymin)/gp->range;
+  val = (fval - gp->ymin) / gp->range;
 
-  if (val>gp->ys-1) val=gp->ys-1;
-  if (val<0) val=0;
+  if (val > gp->ys - 1)
+    val = gp->ys - 1;
+  if (val < 0)
+    val = 0;
 
   // summ values
-  gp->summ+=val;
+  gp->summ += val;
   gp->dcnt++;
 
   // decimation option
-  if (gp->decimation<0) {
-    if (gp->dcnt>=-gp->decimation) {
-      gp->dcnt=0;
+  if (gp->decimation < 0)
+  {
+    if (gp->dcnt >= -gp->decimation)
+    {
+      gp->dcnt = 0;
       // calc average
-      val=gp->summ/-gp->decimation;
-      gp->summ=0;
+      val = gp->summ / -gp->decimation;
+      gp->summ = 0;
       // add to graph
-      AddGraph(num,val);
+      AddGraph(num, val);
     }
   }
 }
@@ -2052,119 +2396,154 @@ FT5206_Class *touchp;
 TP_Point pLoc;
 bool FT5206_found;
 
-bool Touch_Init(TwoWire &i2c) {
+bool Touch_Init(TwoWire &i2c)
+{
   FT5206_found = false;
   touchp = new FT5206_Class();
-  if (touchp->begin(i2c, FT5206_address)) {
+  if (touchp->begin(i2c, FT5206_address))
+  {
     I2cSetActiveFound(FT5206_address, "FT5206");
     FT5206_found = true;
   }
   return FT5206_found;
 }
 
-uint32_t Touch_Status(uint32_t sel) {
-  if (FT5206_found) {
-    switch (sel) {
-      case 0:
-        return  touchp->touched();
-      case 1:
-        return pLoc.x;
-      case 2:
-        return pLoc.y;
+uint32_t Touch_Status(uint32_t sel)
+{
+  if (FT5206_found)
+  {
+    switch (sel)
+    {
+    case 0:
+      return touchp->touched();
+    case 1:
+      return pLoc.x;
+    case 2:
+      return pLoc.y;
     }
     return 0;
-  } else {
+  }
+  else
+  {
     return 0;
   }
 }
 
-
 #ifdef USE_TOUCH_BUTTONS
-void Touch_MQTT(uint8_t index, const char *cp) {
-  ResponseTime_P(PSTR(",\"FT5206\":{\"%s%d\":\"%d\"}}"), cp, index+1, buttons[index]->vpower.on_off);
+void Touch_MQTT(uint8_t index, const char *cp)
+{
+  ResponseTime_P(PSTR(",\"FT5206\":{\"%s%d\":\"%d\"}}"), cp, index + 1, buttons[index]->vpower.on_off);
   MqttPublishTeleSensor();
 }
 
-void Touch_RDW_BUTT(uint32_t count, uint32_t pwr) {
+void Touch_RDW_BUTT(uint32_t count, uint32_t pwr)
+{
   buttons[count]->xdrawButton(pwr);
-  if (pwr) buttons[count]->vpower.on_off = 1;
-  else buttons[count]->vpower.on_off = 0;
+  if (pwr)
+    buttons[count]->vpower.on_off = 1;
+  else
+    buttons[count]->vpower.on_off = 0;
 }
 
 // check digitizer hit
-void Touch_Check(void(*rotconvert)(int16_t *x, int16_t *y)) {
-uint16_t temp;
-uint8_t rbutt=0;
-uint8_t vbutt=0;
+void Touch_Check(void (*rotconvert)(int16_t *x, int16_t *y))
+{
+  uint16_t temp;
+  uint8_t rbutt = 0;
+  uint8_t vbutt = 0;
 
-
-  if (touchp->touched()) {
+  if (touchp->touched())
+  {
     // did find a hit
     pLoc = touchp->getPoint(0);
 
-    if (renderer) {
+    if (renderer)
+    {
 
       rotconvert(&pLoc.x, &pLoc.y);
 
       //AddLog_P(LOG_LEVEL_INFO, PSTR("touch %d - %d"), pLoc.x, pLoc.y);
       // now must compare with defined buttons
-      for (uint8_t count=0; count<MAXBUTTONS; count++) {
-        if (buttons[count] && !buttons[count]->vpower.disable) {
-            if (buttons[count]->contains(pLoc.x, pLoc.y)) {
-                // did hit
-                buttons[count]->press(true);
-                if (buttons[count]->justPressed()) {
-                  if (!buttons[count]->vpower.is_virtual) {
-                    uint8_t pwr=bitRead(TasmotaGlobal.power, rbutt);
-                    if (!SendKey(KEY_BUTTON, rbutt+1, POWER_TOGGLE)) {
-                      ExecuteCommandPower(rbutt+1, POWER_TOGGLE, SRC_BUTTON);
-                      Touch_RDW_BUTT(count, !pwr);
-                    }
-                  } else {
-                    // virtual button
-                    const char *cp;
-                    if (!buttons[count]->vpower.is_pushbutton) {
-                      // toggle button
-                      buttons[count]->vpower.on_off ^= 1;
-                      cp="TBT";
-                    } else {
-                      // push button
-                      buttons[count]->vpower.on_off = 1;
-                      cp="PBT";
-                    }
-                    buttons[count]->xdrawButton(buttons[count]->vpower.on_off);
-                    Touch_MQTT(count,cp);
-                  }
+      for (uint8_t count = 0; count < MAXBUTTONS; count++)
+      {
+        if (buttons[count] && !buttons[count]->vpower.disable)
+        {
+          if (buttons[count]->contains(pLoc.x, pLoc.y))
+          {
+            // did hit
+            buttons[count]->press(true);
+            if (buttons[count]->justPressed())
+            {
+              if (!buttons[count]->vpower.is_virtual)
+              {
+                uint8_t pwr = bitRead(TasmotaGlobal.power, rbutt);
+                if (!SendKey(KEY_BUTTON, rbutt + 1, POWER_TOGGLE))
+                {
+                  ExecuteCommandPower(rbutt + 1, POWER_TOGGLE, SRC_BUTTON);
+                  Touch_RDW_BUTT(count, !pwr);
                 }
+              }
+              else
+              {
+                // virtual button
+                const char *cp;
+                if (!buttons[count]->vpower.is_pushbutton)
+                {
+                  // toggle button
+                  buttons[count]->vpower.on_off ^= 1;
+                  cp = "TBT";
+                }
+                else
+                {
+                  // push button
+                  buttons[count]->vpower.on_off = 1;
+                  cp = "PBT";
+                }
+                buttons[count]->xdrawButton(buttons[count]->vpower.on_off);
+                Touch_MQTT(count, cp);
+              }
             }
-            if (!buttons[count]->vpower.is_virtual) {
-              rbutt++;
-            } else {
-              vbutt++;
-            }
+          }
+          if (!buttons[count]->vpower.is_virtual)
+          {
+            rbutt++;
+          }
+          else
+          {
+            vbutt++;
+          }
         }
       }
     }
-  } else {
+  }
+  else
+  {
     // no hit
-    for (uint8_t count=0; count<MAXBUTTONS; count++) {
-      if (buttons[count]) {
+    for (uint8_t count = 0; count < MAXBUTTONS; count++)
+    {
+      if (buttons[count])
+      {
         buttons[count]->press(false);
-        if (buttons[count]->justReleased()) {
-          if (buttons[count]->vpower.is_virtual) {
-            if (buttons[count]->vpower.is_pushbutton) {
+        if (buttons[count]->justReleased())
+        {
+          if (buttons[count]->vpower.is_virtual)
+          {
+            if (buttons[count]->vpower.is_pushbutton)
+            {
               // push button
               buttons[count]->vpower.on_off = 0;
-              Touch_MQTT(count,"PBT");
+              Touch_MQTT(count, "PBT");
               buttons[count]->xdrawButton(buttons[count]->vpower.on_off);
             }
           }
         }
-        if (!buttons[count]->vpower.is_virtual) {
+        if (!buttons[count]->vpower.is_virtual)
+        {
           // check if power button stage changed
           uint8_t pwr = bitRead(TasmotaGlobal.power, rbutt);
           uint8_t vpwr = buttons[count]->vpower.on_off;
-          if (pwr != vpwr) {
+          if (pwr != vpwr)
+          {
             Touch_RDW_BUTT(count, pwr);
           }
           rbutt++;
@@ -2187,38 +2566,39 @@ bool Xdrv90(uint8_t function)
 {
   bool result = false;
 
-//  if ((TasmotaGlobal.i2c_enabled || TasmotaGlobal.spi_enabled || TasmotaGlobal.soft_spi_enabled) && XdspPresent()) {
-    switch (function) {
-      case FUNC_WEB_SENSOR:
-        HaspShow(0);
-        break;
-      case FUNC_PRE_INIT:
-        HaspInitDriver();
-        break;
-      case FUNC_EVERY_50_MSECOND:
-        lv_task_handler(); // handle lvgl animation tasks
-        break;
-      case FUNC_SET_POWER:
-        HaspSetPower();
-        break;
-      case FUNC_EVERY_SECOND:
-        break;
+  //  if ((TasmotaGlobal.i2c_enabled || TasmotaGlobal.spi_enabled || TasmotaGlobal.soft_spi_enabled) && XdspPresent()) {
+  switch (function)
+  {
+  case FUNC_WEB_SENSOR:
+    HaspShow(0);
+    break;
+  case FUNC_PRE_INIT:
+    HaspInitDriver();
+    break;
+  case FUNC_EVERY_50_MSECOND:
+    lv_task_handler(); // handle lvgl animation tasks
+    break;
+  case FUNC_SET_POWER:
+    HaspSetPower();
+    break;
+  case FUNC_EVERY_SECOND:
+    break;
 #ifdef USE_DISPLAY_MODES1TO5
-      case FUNC_MQTT_SUBSCRIBE:
-        DisplayMqttSubscribe();
-        break;
-      case FUNC_MQTT_DATA:
-        result = DisplayMqttData();
-        break;
-      case FUNC_SHOW_SENSOR:
-        DisplayLocalSensor();
-        break;
-#endif  // USE_DISPLAY_MODES1TO5
-      case FUNC_COMMAND:
-        result = DecodeCommand(kHaspCommands, HaspCommand);
-        break;
-    }
-//  }
+  case FUNC_MQTT_SUBSCRIBE:
+    DisplayMqttSubscribe();
+    break;
+  case FUNC_MQTT_DATA:
+    result = DisplayMqttData();
+    break;
+  case FUNC_SHOW_SENSOR:
+    DisplayLocalSensor();
+    break;
+#endif // USE_DISPLAY_MODES1TO5
+  case FUNC_COMMAND:
+    result = DecodeCommand(kHaspCommands, HaspCommand);
+    break;
+  }
+  //  }
   return result;
 }
 

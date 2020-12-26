@@ -1,31 +1,31 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-//#include "hasp_conf.h"
-//#include <Arduino.h>
-#include "ArduinoLog.h"
+#include "hasp_conf.h"
+
 #include "ArduinoJson.h"
-//#include "StreamUtils.h" // For EEPromStream
+// #include "StreamUtils.h" // For EEPromStream
 
 #include "lvgl.h"
 #include "lv_conf.h"
-//#include "hasp_conf.h"
+#include "hasp_conf.h"
 
-//#include "lv_fs_if.h"
-//#include "hasp_debug.h"
-//#include "hasp_config.h"
-#include "hasp_object.h"
-//#include "hasp_dispatch.h"
+#if HASP_USE_DEBUG >0
+#include "lv_fs_if.h"
+#include "hasp_debug.h"
+#include "hasp_config.h"
+#include "hasp_gui.h"
 //#include "hasp_filesystem.h" included in hasp_conf.h
-//#include "hasp_wifi.h"
-//#include "hasp_gui.h"
-//#include "hasp_tft.h"
+#endif
+
+#include "hasp_object.h"
+#include "hasp_dispatch.h"
 
 #include "hasp_attribute.h"
 #include "hasp.h"
 #include "lv_theme_hasp.h"
 
-//#include "EEPROM.h"
+#include "EEPROM.h"
 
 //#if LV_USE_HASP
 
@@ -42,39 +42,16 @@
  **********************/
 // void hasp_background(uint16_t pageid, uint16_t imageid);
 
+/**********************
+ *  STATIC VARIABLES
+ **********************/
 #if LV_USE_ANIMATION
 // static void kb_hide_anim_end(lv_anim_t * a);
 #endif
 
-/**********************
- *  STATIC VARIABLES
- **********************/
-uint8_t haspStartDim   = 100;
-uint8_t haspStartPage  = 0;
-uint8_t haspThemeId    = 2;
-uint16_t haspThemeHue  = 200;
-char haspPagesPath[32] = "/pages.jsonl";
-char haspZiFontPath[32];
-
-lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
-lv_obj_t * kb;
-// lv_font_t * defaultFont;
-
 #if LV_DEMO_WALLPAPER
 LV_IMG_DECLARE(img_bubble_pattern)
 #endif
-
-/*
-static const char * btnm_map1[] = {" ", "\n", " ", "\n", " ", "\n", " ", "\n", "P1", "P2", "P3", ""};
-
-static const char * btnm_map2[] = {"0",  "1", "\n", "2",  "3",  "\n", "4",  "5",
-                                   "\n", "6", "7",  "\n", "P1", "P2", "P3", ""};
-*/
-
-lv_obj_t * pages[HASP_NUM_PAGES];
-static lv_font_t * haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
-                                   LV_THEME_DEFAULT_FONT_TITLE};
-uint8_t current_page            = 0;
 
 /**********************
  *      MACROS
@@ -86,6 +63,26 @@ uint8_t current_page            = 0;
 void haspLoadPage(const char * pages);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+uint8_t hasp_sleep_state = HASP_SLEEP_OFF; // Used in hasp_drv_touch.cpp
+static uint16_t sleepTimeShort = 60;  // 1 second resolution
+static uint16_t sleepTimeLong = 120; // 1 second resolution
+
+uint8_t haspStartDim   = 100;
+uint8_t haspStartPage  = 0;
+uint8_t haspThemeId    = 2;
+uint16_t haspThemeHue  = 200;
+char haspPagesPath[32] = "/pages.jsonl";
+char haspZiFontPath[32];
+
+lv_style_t style_mbox_bg; /*Black bg. style with opacity*/
+lv_obj_t * kb;
+// lv_font_t * defaultFont;
+
+lv_obj_t * pages[HASP_NUM_PAGES];
+static lv_font_t * haspFonts[4] = {nullptr, LV_THEME_DEFAULT_FONT_NORMAL, LV_THEME_DEFAULT_FONT_SUBTITLE,
+                                   LV_THEME_DEFAULT_FONT_TITLE};
+uint8_t current_page            = 0;
+
 /**
  * Get Font ID
  */
@@ -97,6 +94,49 @@ lv_font_t * hasp_get_font(uint8_t fontid)
         return haspFonts[fontid];
     }
 }
+
+/**
+ * WakeUp the display using a command instead of touch
+ */
+void hasp_wakeup()
+{
+    lv_disp_trig_activity(NULL);
+}
+
+/**
+ * Check if sleep state needs to be updated
+ */
+bool IRAM_ATTR hasp_update_sleep_state()
+{
+    uint32_t idle = lv_disp_get_inactive_time(NULL);
+
+    if(idle >= (sleepTimeShort + sleepTimeLong) * 1000U) {
+        if(hasp_sleep_state != HASP_SLEEP_LONG) {
+            dispatch_output_idle_state(HASP_SLEEP_LONG);
+            hasp_sleep_state = HASP_SLEEP_LONG;
+        }
+    } else if(idle >= sleepTimeShort * 1000U) {
+        if(hasp_sleep_state != HASP_SLEEP_SHORT) {
+            dispatch_output_idle_state(HASP_SLEEP_SHORT);
+            hasp_sleep_state = HASP_SLEEP_SHORT;
+        }
+    } else {
+        if(hasp_sleep_state != HASP_SLEEP_OFF) {
+            dispatch_output_idle_state(HASP_SLEEP_OFF);
+            hasp_sleep_state = HASP_SLEEP_OFF;
+        }
+    }
+
+    return (hasp_sleep_state != HASP_SLEEP_OFF);
+}
+
+/**
+ * Checks if we went to sleep, wake up is handled in the event handlers
+ */
+// void haspEverySecond()
+// {
+//     hasp_update_sleep_state();
+// }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
@@ -135,14 +175,6 @@ bool get_page_id(lv_obj_t * obj, uint8_t * pageid)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * WakeUp the display using a command instead of touch
- */
-void haspWakeUp()
-{
-    lv_disp_trig_activity(NULL);
-}
 
 void haspDisconnect()
 {
@@ -230,10 +262,10 @@ void haspProgressMsg(const char * msg)
 }
 
 // Sets the value string of the global progress bar
-//void haspProgressMsg(const __FlashStringHelper * msg)
-//{
-//    haspProgressMsg(String(msg).c_str());
-//}
+void haspProgressMsg(const __FlashStringHelper * msg)
+{
+    haspProgressMsg(String(msg).c_str());
+}
 
 /*Add a custom apply callback*/
 static void custom_font_apply_cb(lv_theme_t * th, lv_obj_t * obj, lv_theme_style_t name)
@@ -251,11 +283,9 @@ static void custom_font_apply_cb(lv_theme_t * th, lv_obj_t * obj, lv_theme_style
 /**
  * Create a demo application
  */
-void haspSetup()
+void haspSetup(void)
 {
-    Log.registerOutput(0, &Serial, 255, true);
-
-   // guiSetDim(haspStartDim);
+    guiSetDim(haspStartDim);
 
     /******* File System Test ********************************************************************/
     // lv_fs_file_t f;
@@ -288,16 +318,16 @@ void haspSetup()
     /* ********** Font Initializations ********** */
 
 #if HASP_USE_SPIFFS > 0 || HASP_USE_LITTLEFS > 0
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
-    //lv_zifont_init();
+    #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
+    lv_zifont_init();
 
-   // if(lv_zifont_font_init(&haspFonts[1], haspZiFontPath, 32) != 0) {
+    if(lv_zifont_font_init(&haspFonts[1], haspZiFontPath, 32) != 0) {
         Log.error(TAG_HASP, F("Failed to set font to %s"), haspZiFontPath);
-        haspFonts[0] = LV_FONT_DEFAULT;
-   // } else {
+        haspFonts[1] = LV_FONT_DEFAULT;
+    } else {
         // defaultFont = haspFonts[0];
-   // }
-#endif
+    }
+    #endif
 #endif
 
     // haspFonts[0] = lv_font_load("E:/font_1.fnt");
@@ -309,23 +339,26 @@ void haspSetup()
     if(haspThemeId == 9) haspThemeId = 5;                    // update old material id
     if(haspThemeId <= 0 || haspThemeId > 5) haspThemeId = 1; // check bounds
 
-    lv_theme_t * th = NULL;
+    lv_theme_t * th                         = NULL;
+    lv_theme_hasp_flag_t hasp_flags         = LV_THEME_HASP_FLAG_LIGHT;
+    lv_theme_material_flag_t material_flags = LV_THEME_MATERIAL_FLAG_LIGHT;
+
     switch(haspThemeId) {
 #if(LV_USE_THEME_EMPTY == 1)
         case 0:
-            th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAG, haspFonts[0],
+            th = lv_theme_empty_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, haspFonts[0],
                                      haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
 
 #if(LV_USE_THEME_HASP == 1)
         case 2: // Dark
+            hasp_flags = LV_THEME_HASP_FLAG_DARK;
         case 1: // Light
         case 8: // Light (old id)
-            th = lv_theme_hasp_init(lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
-                                    lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
-                                    LV_THEME_HASP_FLAG_LIGHT + LV_THEME_HASP_FLAG_NO_FOCUS, haspFonts[0], haspFonts[1],
-                                    haspFonts[2], haspFonts[3]);
+            th = lv_theme_hasp_init(
+                lv_color_hsv_to_rgb(haspThemeHue, 100, 100), lv_color_hsv_to_rgb(haspThemeHue, 100, 100),
+                hasp_flags + LV_THEME_HASP_FLAG_NO_FOCUS, haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
 
@@ -343,67 +376,45 @@ void haspSetup()
 
 #if(LV_USE_THEME_MONO == 1)
         case 3:
-            th = lv_theme_mono_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAG, haspFonts[0], haspFonts[1],
+            th = lv_theme_mono_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, haspFonts[0], haspFonts[1],
                                     haspFonts[2], haspFonts[3]);
             break;
 #endif
 
-            /*
-             * LV_THEME_MATERIAL_FLAG_LIGHT: light theme
-             * LV_THEME_MATERIAL_FLAG_DARK: dark theme
-             * LV_THEME_MATERIAL_FLAG_NO_TRANSITION: disable transitions (state change animations)
-             * LV_THEME_MATERIAL_FLAG_NO_FOCUS: disable indication of focused state)
-             * */
-
+            // LV_THEME_MATERIAL_FLAG_NO_TRANSITION : disable transitions(state change animations)
+            // LV_THEME_MATERIAL_FLAG_NO_FOCUS: disable indication of focused state)
 #if LV_USE_THEME_MATERIAL == 1
-        case 4:
-            th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
-                                        LV_THEME_MATERIAL_FLAG_LIGHT + LV_THEME_MATERIAL_FLAG_NO_FOCUS +
-                                            LV_THEME_MATERIAL_FLAG_NO_TRANSITION,
-                                        haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
-            break;
-        case 5:
+        case 5: // Dark
+            material_flags = LV_THEME_MATERIAL_FLAG_DARK;
+        case 4: // Light
         case 9: // Light (old id)
             th = lv_theme_material_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE,
-                                        LV_THEME_MATERIAL_FLAG_DARK + LV_THEME_MATERIAL_FLAG_NO_FOCUS +
+                                        material_flags + LV_THEME_MATERIAL_FLAG_NO_FOCUS +
                                             LV_THEME_MATERIAL_FLAG_NO_TRANSITION,
                                         haspFonts[0], haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
-#endif
-
-#if LV_USE_THEME_ZEN == 1
-        case 5:
-            th = lv_theme_zen_init(haspThemeHue, defaultFont); // lightweight break;
-#endif
-
-#if LV_USE_THEME_NEMO == 1
-        case 6:
-            th =
-                // lv_theme_nemo_init(haspThemeHue, defaultFont); // heavy
-                break;
 #endif
 
 #if LV_USE_THEME_TEMPLATE == 1
         case 7:
-            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAG, haspFonts[0],
+            th = lv_theme_template_init(LV_COLOR_PURPLE, LV_COLOR_ORANGE, LV_THEME_DEFAULT_FLAGS, haspFonts[0],
                                         haspFonts[1], haspFonts[2], haspFonts[3]);
             break;
 #endif
 
         default:
 
-            Log.verbose(TAG_HASP, F("Unknown theme selected"));
+            Log.error(TAG_HASP, F("Unknown theme selected"));
     }
 
     if(th) {
         lv_theme_set_act(th);
-        Log.verbose(TAG_HASP, F("Custom theme loaded"));
+        Log.trace(TAG_HASP, F("Custom theme loaded"));
     } else {
-        Log.verbose(TAG_HASP, F("Theme could not be loaded"));
+        Log.error(TAG_HASP, F("Theme could not be loaded"));
     }
-    // lv_theme_set_current(th);
-    /* ********** Theme Initializations ********** */
 
+    /* ********** Theme Initializations ********** */
     // lv_style_list_t * list;
     // static lv_style_t pagefont;
     // lv_style_init(&pagefont);
@@ -413,7 +424,7 @@ void haspSetup()
     // _lv_style_list_add_style(list, &pagefont);
 
     /* Create all screens using the theme */
-    for(uint8_t i = 0; i < (sizeof pages / sizeof *pages); i++) {
+    for(int i = 0; i < (sizeof pages / sizeof *pages); i++) {
         pages[i] = lv_obj_create(NULL, NULL);
         //  list     = lv_obj_get_style_list(pages[i], LV_OBJ_PART_MAIN);
         // _lv_style_list_add_style(list, &pagefont);
@@ -427,14 +438,6 @@ void haspSetup()
 
     haspLoadPage(haspPagesPath);
     haspSetPage(haspStartPage);
-
-    // lv_obj_t * obj = lv_btn_create(pages[0], NULL);
-    // lv_obj_set_size(obj, 100, 100);
-    // lv_obj_set_user_data(obj, (lv_obj_user_data_t)15);
-    // /* lv_obj_t * label ; */
-    // lv_label_create(obj, NULL);
-    // // haspSetOpacity(obj, LV_OPA_COVER);
-    // lv_obj_set_event_cb(obj, btn_event_handler);
 }
 
 /**********************
@@ -495,24 +498,20 @@ void hasp_background(uint16_t pageid, uint16_t imageid)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void haspGetVersion(char * version, size_t len)
 {
-    // char buffer[16];
     snprintf_P(version, len, "%u.%u.%u", HASP_VERSION_MAJOR, HASP_VERSION_MINOR, HASP_VERSION_REVISION);
-    // return buffer;
 }
 
 void haspClearPage(uint16_t pageid)
 {
     lv_obj_t * page = get_page_obj(pageid);
     if(!page || pageid > 255) {
-        Log.verbose(TAG_HASP, F("Page ID %u not defined"), pageid);
+        Log.warning(TAG_HASP, F("Page ID %u not defined"), pageid);
     } else if(page == lv_layer_sys() /*|| page == lv_layer_top()*/) {
-        Log.verbose(TAG_HASP, F("Cannot clear system layer"));
+        Log.warning(TAG_HASP, F("Cannot clear system layer"));
     } else {
-        Log.verbose(TAG_HASP, F("Clearing page %u"), pageid);
+        Log.notice(TAG_HASP, F("Clearing page %u"), pageid);
         lv_obj_clean(page);
     }
 }
@@ -526,34 +525,18 @@ void haspSetPage(uint8_t pageid)
 {
     lv_obj_t * page = get_page_obj(pageid);
     if(!page) {
-        Log.verbose(TAG_HASP, F("Page ID %u not found"), pageid);
+        Log.warning(TAG_HASP, F("Page ID %u not found"), pageid);
     } else if(page == lv_layer_sys() || page == lv_layer_top()) {
-        Log.verbose(TAG_HASP, F("%sCannot change to a layer"));
+        Log.warning(TAG_HASP, F("%sCannot change to a layer"));
     } else {
         // if(pageid != current_page) {
-        Log.verbose(TAG_HASP, F("Changing page to %u"), pageid);
+        Log.notice(TAG_HASP, F("Changing page to %u"), pageid);
         current_page = pageid;
         lv_scr_load(page);
 
         hasp_object_tree(page, pageid, 0);
 
         //}
-    }
-}
-
-// TODO make this a recursicee function
-void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj)
-{
-    // bool state = dispatch_get_event_state(eventid);
-    bool state = false;
-    for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
-        uint8_t startid = 100 + groupid * 10; // groups start at id 100
-        for(uint8_t objid = startid; objid < (startid + 10); objid++) {
-            lv_obj_t * obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
-            if(obj && obj != src_obj) { // skip source object, if set
-                lv_obj_set_state(obj, state ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
-            }
-        }
     }
 }
 
@@ -581,12 +564,12 @@ void haspLoadPage(const char * pages)
     Log.trace(TAG_HASP, F("File %s loaded"), pages);
 #else
 
-#if HASP_USE_EEPROM > 0
+    #if HASP_USE_EEPROM > 0
     Log.notice(TAG_HASP, F("Loading jsonl from EEPROM..."));
     EepromStream eepromStream(4096, 1024);
     dispatch_parse_jsonl(eepromStream);
     Log.trace(TAG_HASP, F("Loaded jsonl from EEPROM"));
-#endif
+    #endif
 
 #endif
 }
@@ -595,58 +578,58 @@ void haspLoadPage(const char * pages)
 #if HASP_USE_CONFIG > 0
 bool haspGetConfig(const JsonObject & settings)
 {
-   bool changed = false;
+    bool changed = false;
 
-   if(haspStartPage != settings[FPSTR(F_CONFIG_STARTPAGE)].as<uint8_t>()) changed = true;
-   settings[FPSTR(F_CONFIG_STARTPAGE)] = haspStartPage;
+    if(haspStartPage != settings[FPSTR(F_CONFIG_STARTPAGE)].as<uint8_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_STARTPAGE)] = haspStartPage;
 
-   if(haspStartDim != settings[FPSTR(F_CONFIG_STARTDIM)].as<uint8_t>()) changed = true;
-   settings[FPSTR(F_CONFIG_STARTDIM)] = haspStartDim;
+    if(haspStartDim != settings[FPSTR(F_CONFIG_STARTDIM)].as<uint8_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_STARTDIM)] = haspStartDim;
 
-   if(haspThemeId != settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>()) changed = true;
-   settings[FPSTR(F_CONFIG_THEME)] = haspThemeId;
+    if(haspThemeId != settings[FPSTR(F_CONFIG_THEME)].as<uint8_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_THEME)] = haspThemeId;
 
-   if(haspThemeHue != settings[FPSTR(F_CONFIG_HUE)].as<uint16_t>()) changed = true;
-   settings[FPSTR(F_CONFIG_HUE)] = haspThemeHue;
+    if(haspThemeHue != settings[FPSTR(F_CONFIG_HUE)].as<uint16_t>()) changed = true;
+    settings[FPSTR(F_CONFIG_HUE)] = haspThemeHue;
 
-   if(strcmp(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)].as<String>().c_str()) != 0) changed = true;
-   settings[FPSTR(F_CONFIG_ZIFONT)] = haspZiFontPath;
+    if(strcmp(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_ZIFONT)] = haspZiFontPath;
 
-   if(strcmp(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)].as<String>().c_str()) != 0) changed = true;
-   settings[FPSTR(F_CONFIG_PAGES)] = haspPagesPath;
+    if(strcmp(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)].as<String>().c_str()) != 0) changed = true;
+    settings[FPSTR(F_CONFIG_PAGES)] = haspPagesPath;
 
-   if(changed) configOutput(settings, TAG_HASP);
-   return changed;
+    if(changed) configOutput(settings, TAG_HASP);
+    return changed;
 }
 
 /** Set HASP Configuration.
-*
-* Read the settings from json and sets the application variables.
-*
-* @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
-*
-* @param[in] settings    JsonObject with the config settings.
-**/
+ *
+ * Read the settings from json and sets the application variables.
+ *
+ * @note: data pixel should be formated to uint32_t RGBA. Imagemagick requirements.
+ *
+ * @param[in] settings    JsonObject with the config settings.
+ **/
 bool haspSetConfig(const JsonObject & settings)
 {
-   configOutput(settings, TAG_HASP);
-   bool changed = false;
+    configOutput(settings, TAG_HASP);
+    bool changed = false;
 
-   changed |= configSet(haspStartPage, settings[FPSTR(F_CONFIG_STARTPAGE)], F("haspStartPage"));
-   changed |= configSet(haspStartDim, settings[FPSTR(F_CONFIG_STARTDIM)], F("haspStartDim"));
-   changed |= configSet(haspThemeId, settings[FPSTR(F_CONFIG_THEME)], F("haspThemeId"));
-   changed |= configSet(haspThemeHue, settings[FPSTR(F_CONFIG_HUE)], F("haspThemeHue"));
+    changed |= configSet(haspStartPage, settings[FPSTR(F_CONFIG_STARTPAGE)], F("haspStartPage"));
+    changed |= configSet(haspStartDim, settings[FPSTR(F_CONFIG_STARTDIM)], F("haspStartDim"));
+    changed |= configSet(haspThemeId, settings[FPSTR(F_CONFIG_THEME)], F("haspThemeId"));
+    changed |= configSet(haspThemeHue, settings[FPSTR(F_CONFIG_HUE)], F("haspThemeHue"));
 
-   if(!settings[FPSTR(F_CONFIG_PAGES)].isNull()) {
-       changed |= strcmp(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)]) != 0;
-       strncpy(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)], sizeof(haspPagesPath));
-   }
+    if(!settings[FPSTR(F_CONFIG_PAGES)].isNull()) {
+        changed |= strcmp(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)]) != 0;
+        strncpy(haspPagesPath, settings[FPSTR(F_CONFIG_PAGES)], sizeof(haspPagesPath));
+    }
 
-   if(!settings[FPSTR(F_CONFIG_ZIFONT)].isNull()) {
-       changed |= strcmp(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)]) != 0;
-       strncpy(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)], sizeof(haspZiFontPath));
-   }
+    if(!settings[FPSTR(F_CONFIG_ZIFONT)].isNull()) {
+        changed |= strcmp(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)]) != 0;
+        strncpy(haspZiFontPath, settings[FPSTR(F_CONFIG_ZIFONT)], sizeof(haspZiFontPath));
+    }
 
-   return changed;
+    return changed;
 }
-#endif
+#endif // HASP_USE_CONFIG

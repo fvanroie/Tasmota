@@ -3,14 +3,14 @@
  *
  */
 
- /*********************
-  *      INCLUDES
-  *********************/
+/*********************
+ *      INCLUDES
+ *********************/
 #include "lvgl.h"          /*To see all the widgets*/
 #include "lv_conf.h"       /*To see all the widgets*/
 #include "lv_theme_hasp.h" /*To see all the widgets*/
 
-  //#if LV_USE_THEME_HASP
+//#if LV_USE_THEME_HASP
 
 #include "src/lv_misc/lv_gc.h"
 
@@ -22,7 +22,7 @@
  *      DEFINES
  *********************/
 
- /*SCREEN*/
+/*SCREEN*/
 
 #define COLOR_SCR (IS_LIGHT ? LV_COLOR_WHITE : lv_color_hex(0x545b6a))
 #define COLOR_SCR_GRAD (IS_LIGHT ? LV_COLOR_SILVER : lv_color_hex(0x222b3a))
@@ -73,7 +73,7 @@
 
 #define TRANSITION_TIME 0 /*((theme.flags & LV_THEME_HASP_FLAG_NO_TRANSITION) ? 0 : 150)*/
 #define BORDER_WIDTH LV_DPX(2)
-#define BORDER_COLOR ((theme.flags & IS_LIGHT) ? lv_color_make(0x40, 0x40, 0x40) :  lv_color_make(0xb0, 0xb0, 0xb0))
+#define BORDER_COLOR ((theme.flags & IS_LIGHT) ? lv_color_make(0x40, 0x40, 0x40) : lv_color_make(0xb0, 0xb0, 0xb0))
 #define OUTLINE_WIDTH ((theme.flags & LV_THEME_HASP_FLAG_NO_FOCUS) ? 0 : LV_DPX(3))
 #define OUTLINE_COLOR ((theme.flags & LV_THEME_HASP_FLAG_NO_FOCUS) ? BORDER_COLOR : theme.color_secondary)
 
@@ -83,7 +83,8 @@
 #define PAD_DEF (lv_disp_get_size_category(NULL) <= LV_DISP_SIZE_MEDIUM ? LV_DPX(15) : (LV_DPX(30)))
 
 /*SCROLLBAR*/
-#define SCROLLBAR_COLOR     (IS_LIGHT ? lv_color_mix(theme.color_primary, lv_color_hex3(0x999), LV_OPA_10)                                                \
+#define SCROLLBAR_COLOR                                                            \
+    (IS_LIGHT ? lv_color_mix(theme.color_primary, lv_color_hex3(0x999), LV_OPA_10) \
               : lv_color_mix(theme.color_primary, lv_color_hex3(0x999), LV_OPA_10))
 
 /**********************
@@ -92,11 +93,11 @@
 typedef struct
 {
 
-    lv_style_t transparent; // Objects with transparent background, like Checkbox, container
-    lv_style_t pretty;   // Background gradient
+    lv_style_t transparent;  // Objects with transparent background, like Checkbox, container
+    lv_style_t pretty;       // Background gradient
     lv_style_t pretty_color; // Primary Colored gradient
-    //lv_style_t bg_click;
-    //lv_style_t bg_sec;
+    // lv_style_t bg_click;
+    // lv_style_t bg_sec;
     lv_style_t btn;
     lv_style_t pad_inner; // Space inner objects
     lv_style_t pad_small; // Inner margin and space inner objects
@@ -130,7 +131,7 @@ typedef struct
 #endif
 
 #if LV_USE_CHECKBOX
-    lv_style_t  cb_bullet;
+    lv_style_t cb_bullet;
 #endif
 
 #if LV_USE_GAUGE
@@ -193,14 +194,14 @@ typedef struct
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static void theme_apply(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name);
-static void style_init_reset(lv_style_t* style);
+static void theme_apply(lv_theme_t *th, lv_obj_t *obj, lv_theme_style_t name);
+static void style_init_reset(lv_style_t *style);
 
 /**********************
  *  STATIC VARIABLES
  **********************/
 static lv_theme_t theme;
-static theme_styles_t* styles;
+static theme_styles_t *styles;
 
 static bool inited;
 
@@ -208,9 +209,9 @@ static bool inited;
  *      MACROS
  **********************/
 
- /**********************
-  *   STATIC FUNCTIONS
-  **********************/
+/**********************
+ *   STATIC FUNCTIONS
+ **********************/
 
 static void basic_init(void)
 {
@@ -222,8 +223,8 @@ static void basic_init(void)
     lv_style_set_value_color(&styles->transparent, LV_STATE_DEFAULT, COLOR_SCR_TEXT);
     lv_style_set_value_font(&styles->transparent, LV_STATE_DEFAULT, theme.font_subtitle);
 
-    if (!NO_FOCUS)    lv_style_set_outline_width(&styles->transparent, LV_STATE_DEFAULT, OUTLINE_WIDTH);
-
+    if (!NO_FOCUS)
+        lv_style_set_outline_width(&styles->transparent, LV_STATE_DEFAULT, OUTLINE_WIDTH);
 
     // Background gradient
     style_init_reset(&styles->pretty);
@@ -281,14 +282,15 @@ static void basic_init(void)
     lv_style_set_border_opa(&styles->pretty_color, LV_STATE_DEFAULT, 3);
     lv_style_set_border_width(&styles->pretty_color, LV_STATE_DEFAULT, BORDER_WIDTH);
     lv_style_set_border_color(&styles->pretty_color, LV_STATE_DEFAULT, BORDER_COLOR);
-    lv_style_set_border_color(&styles->pretty_color, LV_STATE_EDITED, lv_color_darken(theme.color_secondary, LV_OPA_30));
+    lv_style_set_border_color(&styles->pretty_color, LV_STATE_EDITED,
+                              lv_color_darken(theme.color_secondary, LV_OPA_30));
 
     lv_style_set_outline_width(&styles->pretty_color, LV_STATE_DEFAULT, OUTLINE_WIDTH);
-    if (!NO_FOCUS) {
+    if (!NO_FOCUS)
+    {
         lv_style_set_border_color(&styles->pretty_color, LV_STATE_FOCUSED, theme.color_secondary);
         lv_style_set_border_width(&styles->pretty_color, LV_STATE_FOCUSED, OUTLINE_WIDTH);
     }
-
 
     /*    style_init_reset(&styles->bg_sec);
         lv_style_copy(&styles->bg_sec, &styles->pretty_color);
@@ -362,22 +364,22 @@ static void basic_init(void)
     lv_style_set_text_color(&styles->btn, LV_STATE_DISABLED, COLOR_BG_TEXT_DIS);
 
     lv_style_set_image_recolor(&styles->btn, LV_STATE_DEFAULT,
-        IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex(0xffffff));
+                               IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex(0xffffff));
     lv_style_set_image_recolor(&styles->btn, LV_STATE_PRESSED,
-        IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex(0xffffff));
+                               IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex(0xffffff));
     lv_style_set_image_recolor(&styles->btn, LV_STATE_PRESSED, lv_color_hex(0xffffff));
     lv_style_set_image_recolor(&styles->btn, LV_STATE_CHECKED | LV_STATE_PRESSED, lv_color_hex(0xffffff));
     lv_style_set_image_recolor(&styles->btn, LV_STATE_DISABLED,
-        IS_LIGHT ? lv_color_hex(0x888888) : lv_color_hex(0x888888));
+                               IS_LIGHT ? lv_color_hex(0x888888) : lv_color_hex(0x888888));
 
     lv_style_set_value_color(&styles->btn, LV_STATE_DEFAULT,
-        IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex(0xffffff));
+                             IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex(0xffffff));
     lv_style_set_value_color(&styles->btn, LV_STATE_PRESSED,
-        IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex(0xffffff));
+                             IS_LIGHT ? lv_color_hex(0x31404f) : lv_color_hex(0xffffff));
     lv_style_set_value_color(&styles->btn, LV_STATE_CHECKED, lv_color_hex(0xffffff));
     lv_style_set_value_color(&styles->btn, LV_STATE_CHECKED | LV_STATE_PRESSED, lv_color_hex(0xffffff));
     lv_style_set_value_color(&styles->btn, LV_STATE_DISABLED,
-        IS_LIGHT ? lv_color_hex(0x888888) : lv_color_hex(0x888888));
+                             IS_LIGHT ? lv_color_hex(0x888888) : lv_color_hex(0x888888));
 
     lv_style_set_pad_left(&styles->btn, LV_STATE_DEFAULT, LV_DPX(40));
     lv_style_set_pad_right(&styles->btn, LV_STATE_DEFAULT, LV_DPX(40));
@@ -386,7 +388,8 @@ static void basic_init(void)
     lv_style_set_pad_inner(&styles->btn, LV_STATE_DEFAULT, LV_DPX(20));
 
     lv_style_set_outline_width(&styles->btn, LV_STATE_DEFAULT, OUTLINE_WIDTH);
-    if (!NO_FOCUS) {
+    if (!NO_FOCUS)
+    {
         lv_style_set_outline_opa(&styles->btn, LV_STATE_DEFAULT, LV_OPA_0);
         lv_style_set_outline_opa(&styles->btn, LV_STATE_FOCUSED, LV_OPA_50);
         lv_style_set_outline_color(&styles->btn, LV_STATE_DEFAULT, theme.color_primary);
@@ -402,7 +405,7 @@ static void basic_init(void)
 
     style_init_reset(&styles->pad_inner);
     lv_style_set_pad_inner(&styles->pad_inner, LV_STATE_DEFAULT,
-        lv_disp_get_size_category(NULL) <= LV_DISP_MEDIUM_LIMIT ? LV_DPX(20) : LV_DPX(40));
+                           lv_disp_get_size_category(NULL) <= LV_DISP_MEDIUM_LIMIT ? LV_DPX(20) : LV_DPX(40));
 
     style_init_reset(&styles->pad_small);
     lv_style_int_t pad_small_value = lv_disp_get_size_category(NULL) <= LV_DISP_MEDIUM_LIMIT ? LV_DPX(10) : LV_DPX(20);
@@ -417,11 +420,10 @@ static void basic_init(void)
     style_init_reset(&styles->selected);
     lv_style_set_radius(&styles->selected, LV_STATE_DEFAULT, 0);
     lv_style_set_text_color(&styles->selected, LV_STATE_DEFAULT,
-        IS_LIGHT ? lv_color_hex3(0xfff) : lv_color_hex3(0xfff));
+                            IS_LIGHT ? lv_color_hex3(0xfff) : lv_color_hex3(0xfff));
     lv_style_set_bg_color(&styles->selected, LV_STATE_PRESSED, COLOR_BG_PR);
     lv_style_set_text_color(&styles->selected, LV_STATE_PRESSED, COLOR_BG_TEXT_PR);
 #endif
-
 }
 
 static void cont_init(void)
@@ -465,7 +467,8 @@ static void bar_init(void)
     lv_style_set_radius(&styles->bar_indic, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
     lv_style_set_bg_color(&styles->bar_indic, LV_STATE_DEFAULT, theme.color_primary);
     lv_style_set_bg_color(&styles->bar_indic, LV_STATE_DISABLED, lv_color_hex3(0x888));
-    lv_style_set_value_color(&styles->bar_indic, LV_STATE_DEFAULT, IS_LIGHT ? lv_color_hex(0x41404f) : LV_COLOR_WHITE);*/
+    lv_style_set_value_color(&styles->bar_indic, LV_STATE_DEFAULT, IS_LIGHT ? lv_color_hex(0x41404f) :
+   LV_COLOR_WHITE);*/
 #endif
 }
 
@@ -508,7 +511,7 @@ static void slider_init(void)
     // lv_style_set_bg_color(&styles->slider_knob, LV_STATE_DEFAULT, IS_LIGHT ? theme.color_primary : LV_COLOR_WHITE);
     // lv_style_set_value_color(&styles->slider_knob, LV_STATE_DEFAULT,
     //                          IS_LIGHT ? lv_color_hex(0x31404f) : LV_COLOR_WHITE);
-     // lv_style_set_radius(&styles->slider_knob, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
+    // lv_style_set_radius(&styles->slider_knob, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
     lv_style_set_pad_left(&styles->slider_knob, LV_STATE_DEFAULT, LV_DPX(7));
     lv_style_set_pad_right(&styles->slider_knob, LV_STATE_DEFAULT, LV_DPX(7));
     lv_style_set_pad_top(&styles->slider_knob, LV_STATE_DEFAULT, LV_DPX(7));
@@ -527,9 +530,9 @@ static void switch_init(void)
 {
 #if LV_USE_SWITCH != 0
     style_init_reset(&styles->sw_knob);
-    //lv_style_set_bg_opa(&styles->sw_knob, LV_STATE_DEFAULT, LV_OPA_COVER);
-    //lv_style_set_bg_color(&styles->sw_knob, LV_STATE_DEFAULT, LV_COLOR_WHITE);
-    //lv_style_set_radius(&styles->sw_knob, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
+    // lv_style_set_bg_opa(&styles->sw_knob, LV_STATE_DEFAULT, LV_OPA_COVER);
+    // lv_style_set_bg_color(&styles->sw_knob, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+    // lv_style_set_radius(&styles->sw_knob, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
     lv_style_set_pad_top(&styles->sw_knob, LV_STATE_DEFAULT, LV_DPX(2));
     lv_style_set_pad_bottom(&styles->sw_knob, LV_STATE_DEFAULT, LV_DPX(2));
     lv_style_set_pad_left(&styles->sw_knob, LV_STATE_DEFAULT, LV_DPX(2));
@@ -564,12 +567,13 @@ static void gauge_init(void)
     lv_style_set_scale_grad_color(&styles->gauge_main, LV_STATE_DEFAULT, lv_color_hex3(0x888));
     lv_style_set_scale_end_color(&styles->gauge_main, LV_STATE_DEFAULT, theme.color_primary);
     lv_style_set_line_width(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(2)); // normal scale  minor thick width
-    lv_style_set_scale_end_line_width(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(2)); // strong scale minor tick width
+    lv_style_set_scale_end_line_width(&styles->gauge_main, LV_STATE_DEFAULT,
+                                      LV_DPX(2)); // strong scale minor tick width
     lv_style_set_scale_end_border_width(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(3));
-    lv_style_set_pad_left(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20)); // left margin
-    lv_style_set_pad_right(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));//right margin
-    lv_style_set_pad_top(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));// top margin
-    lv_style_set_pad_inner(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(15)); // position of the labels
+    lv_style_set_pad_left(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));    // left margin
+    lv_style_set_pad_right(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));   // right margin
+    lv_style_set_pad_top(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(20));     // top margin
+    lv_style_set_pad_inner(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(15));   // position of the labels
     lv_style_set_scale_width(&styles->gauge_main, LV_STATE_DEFAULT, LV_DPX(10)); // minor thick length
     lv_style_set_radius(&styles->gauge_main, LV_STATE_DEFAULT, LV_RADIUS_CIRCLE);
 
@@ -579,11 +583,11 @@ static void gauge_init(void)
     lv_style_set_scale_end_color(&styles->gauge_strong, LV_STATE_DEFAULT, theme.color_primary);
     lv_style_set_line_width(&styles->gauge_strong, LV_STATE_DEFAULT, LV_DPX(8)); // strong scale arc width
     lv_style_set_scale_end_line_width(&styles->gauge_strong, LV_STATE_DEFAULT, LV_DPX(8));
-    lv_style_set_scale_width(&styles->gauge_strong, LV_STATE_DEFAULT, LV_DPX(20));  // major thick length
+    lv_style_set_scale_width(&styles->gauge_strong, LV_STATE_DEFAULT, LV_DPX(20)); // major thick length
 
     style_init_reset(&styles->gauge_needle);
     lv_style_set_line_color(&styles->gauge_needle, LV_STATE_DEFAULT,
-        IS_LIGHT ? lv_color_hex(0x464b5b) : LV_COLOR_WHITE);
+                            IS_LIGHT ? lv_color_hex(0x464b5b) : LV_COLOR_WHITE);
     lv_style_set_line_width(&styles->gauge_needle, LV_STATE_DEFAULT, LV_DPX(8));
     lv_style_set_bg_opa(&styles->gauge_needle, LV_STATE_DEFAULT, LV_OPA_COVER);
     lv_style_set_bg_color(&styles->gauge_needle, LV_STATE_DEFAULT, IS_LIGHT ? lv_color_hex(0x464b5b) : LV_COLOR_WHITE);
@@ -657,7 +661,7 @@ static void calendar_init(void)
     style_init_reset(&styles->calendar_date_nums);
     lv_style_set_radius(&styles->calendar_date_nums, LV_STATE_DEFAULT, LV_DPX(4));
     lv_style_set_text_color(&styles->calendar_date_nums, LV_STATE_CHECKED,
-        IS_LIGHT ? lv_color_hex(0x31404f) : LV_COLOR_WHITE);
+                            IS_LIGHT ? lv_color_hex(0x31404f) : LV_COLOR_WHITE);
     lv_style_set_text_color(&styles->calendar_date_nums, LV_STATE_DISABLED, LV_COLOR_GRAY);
     lv_style_set_bg_opa(&styles->calendar_date_nums, LV_STATE_CHECKED, IS_LIGHT ? LV_OPA_20 : LV_OPA_40);
     lv_style_set_bg_opa(&styles->calendar_date_nums, LV_STATE_PRESSED, LV_OPA_20);
@@ -665,7 +669,7 @@ static void calendar_init(void)
     lv_style_set_text_color(&styles->calendar_date_nums, LV_STATE_FOCUSED, LV_COLOR_WHITE);
     lv_style_set_bg_color(&styles->calendar_date_nums, LV_STATE_FOCUSED, theme.color_primary);
     lv_style_set_bg_color(&styles->calendar_date_nums, LV_STATE_DEFAULT,
-        IS_LIGHT ? lv_color_hex(0x666666) : LV_COLOR_WHITE);
+                          IS_LIGHT ? lv_color_hex(0x666666) : LV_COLOR_WHITE);
     lv_style_set_bg_color(&styles->calendar_date_nums, LV_STATE_CHECKED, theme.color_primary);
     lv_style_set_border_width(&styles->calendar_date_nums, LV_STATE_CHECKED, 2);
     lv_style_set_border_side(&styles->calendar_date_nums, LV_STATE_CHECKED, LV_BORDER_SIDE_LEFT);
@@ -748,7 +752,8 @@ static void checkbox_init(void)
 }
 
 static void btnmatrix_init(void)
-{}
+{
+}
 
 static void keyboard_init(void)
 {
@@ -807,7 +812,7 @@ static void textarea_init(void)
 
     style_init_reset(&styles->ta_placeholder);
     lv_style_set_text_color(&styles->ta_placeholder, LV_STATE_DEFAULT,
-        IS_LIGHT ? COLOR_BG_TEXT_DIS : lv_color_hex(0xa1adbd));
+                            IS_LIGHT ? COLOR_BG_TEXT_DIS : lv_color_hex(0xa1adbd));
 #endif
 }
 
@@ -859,7 +864,7 @@ static void list_init(void)
     lv_style_set_border_width(&styles->list_btn, LV_STATE_DEFAULT, BORDER_WIDTH);
 
     lv_style_set_outline_color(&styles->list_btn, LV_STATE_FOCUSED, theme.color_secondary);
-    //lv_style_set_outline_width(&styles->list_btn, LV_STATE_FOCUSED, OUTLINE_WIDTH);
+    // lv_style_set_outline_width(&styles->list_btn, LV_STATE_FOCUSED, OUTLINE_WIDTH);
     lv_style_set_outline_pad(&styles->list_btn, LV_STATE_FOCUSED, -BORDER_WIDTH);
 
     lv_style_set_pad_left(&styles->list_btn, LV_STATE_DEFAULT, PAD_DEF);
@@ -987,28 +992,29 @@ static void tabview_win_shared_init(void)
  *   GLOBAL FUNCTIONS
  **********************/
 
- /**
-  * Initialize the default
-  * @param color_primary the primary color of the theme
-  * @param color_secondary the secondary color for the theme
-  * @param flags ORed flags starting with `LV_THEME_DEF_FLAG_...`
-  * @param font_small pointer to a small font
-  * @param font_normal pointer to a normal font
-  * @param font_subtitle pointer to a large font
-  * @param font_title pointer to a extra large font
-  * @return a pointer to reference this theme later
-  */
-lv_theme_t* lv_theme_hasp_init(lv_color_t color_primary, lv_color_t color_secondary, uint32_t flags,
-    const lv_font_t* font_small, const lv_font_t* font_normal,
-    const lv_font_t* font_subtitle, const lv_font_t* font_title)
+/**
+ * Initialize the default
+ * @param color_primary the primary color of the theme
+ * @param color_secondary the secondary color for the theme
+ * @param flags ORed flags starting with `LV_THEME_DEF_FLAG_...`
+ * @param font_small pointer to a small font
+ * @param font_normal pointer to a normal font
+ * @param font_subtitle pointer to a large font
+ * @param font_title pointer to a extra large font
+ * @return a pointer to reference this theme later
+ */
+lv_theme_t *lv_theme_hasp_init(lv_color_t color_primary, lv_color_t color_secondary, uint32_t flags,
+                               const lv_font_t *font_small, const lv_font_t *font_normal,
+                               const lv_font_t *font_subtitle, const lv_font_t *font_title)
 {
 
     /* This trick is required only to avoid the garbage collection of
      * styles' data if LVGL is used in a binding (e.g. Micropython)
      * In a general case styles could be simple `static lv_style_t my style` variables*/
-    if (!inited) {
+    if (!inited)
+    {
         LV_GC_ROOT(_lv_theme_material_styles) = lv_mem_alloc(sizeof(theme_styles_t));
-        styles = (theme_styles_t*)LV_GC_ROOT(_lv_theme_material_styles);
+        styles = (theme_styles_t *)LV_GC_ROOT(_lv_theme_material_styles);
     }
 
     theme.color_primary = color_primary;
@@ -1062,13 +1068,14 @@ lv_theme_t* lv_theme_hasp_init(lv_color_t color_primary, lv_color_t color_second
     return &theme;
 }
 
-static void theme_apply(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
+static void theme_apply(lv_theme_t *th, lv_obj_t *obj, lv_theme_style_t name)
 {
     LV_UNUSED(th);
 
-    lv_style_list_t* list;
+    lv_style_list_t *list;
 
-    switch (name) {
+    switch (name)
+    {
     case LV_THEME_NONE:
         break;
 
@@ -1146,7 +1153,6 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
         _lv_style_list_add_style(list, &styles->pretty);
         _lv_style_list_add_style(list, &styles->sw_knob);
         // _lv_style_list_add_style(list, &styles->pad_small);
-
 
         break;
 #endif
@@ -1382,15 +1388,17 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
         break;
 #endif
 #if LV_USE_TABLE
-    case LV_THEME_TABLE: {
+    case LV_THEME_TABLE:
+    {
         list = lv_obj_get_style_list(obj, LV_TABLE_PART_BG);
         _lv_style_list_add_style(list, &styles->pretty_color);
 
         int idx = 1; /* start value should be 1, not zero, since cell styles
-                    start at 1 due to presence of LV_TABLE_PART_BG=0
-                    in the enum (lv_table.h) */
-                    /* declaring idx outside loop to work with older compilers */
-        for (; idx <= LV_TABLE_CELL_STYLE_CNT; idx++) {
+                        start at 1 due to presence of LV_TABLE_PART_BG=0
+                        in the enum (lv_table.h) */
+                     /* declaring idx outside loop to work with older compilers */
+        for (; idx <= LV_TABLE_CELL_STYLE_CNT; idx++)
+        {
             list = lv_obj_get_style_list(obj, idx);
             _lv_style_list_add_style(list, &styles->table_cell);
         }
@@ -1450,7 +1458,7 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
     case LV_THEME_SPINBOX_BTN:
         list = lv_obj_get_style_list(obj, LV_BTN_PART_MAIN);
         _lv_style_list_add_style(list, &styles->pretty_color);
-       // _lv_style_list_add_style(list, &styles->bg_click);
+        // _lv_style_list_add_style(list, &styles->bg_click);
         break;
 #endif
 
@@ -1513,7 +1521,7 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj, lv_theme_style_t name)
  *   STATIC FUNCTIONS
  **********************/
 
-static void style_init_reset(lv_style_t* style)
+static void style_init_reset(lv_style_t *style)
 {
     if (inited)
         lv_style_reset(style);

@@ -14,28 +14,22 @@
  ******************************************************************************************** */
 
 #include "ArduinoLog.h"
-#include "ArduinoJson.h"
-using namespace ArduinoJson;
 
 #include "lvgl.h"
 #if LVGL_VERSION_MAJOR != 7
 #include "../lv_components.h"
 #endif
-#include <stdio.h>
-#include <string>
-#include <stdlib.h>
 
 #include "hasp.h"
-//#include "hasp_gui.h"
 #include "hasp_object.h"
-//#include "hasp_dispatch.h"
+#include "hasp_dispatch.h"
 #include "hasp_attribute.h"
 
 // ##################### Object Finders ########################################################
 
 lv_obj_t * hasp_find_obj_from_parent_id(lv_obj_t * parent, uint8_t objid)
 {
-    if(objid == 0 || parent == NULL) return parent;
+    if(objid == 0 || parent == nullptr) return parent;
 
     lv_obj_t * child;
     child = lv_obj_get_child(parent, NULL);
@@ -49,18 +43,18 @@ lv_obj_t * hasp_find_obj_from_parent_id(lv_obj_t * parent, uint8_t objid)
 
         /* check tabs */
         if(check_obj_type(child, LV_HASP_TABVIEW)) {
-#if LVGL_VERSION_MAJOR == 7
+            //#if LVGL_VERSION_MAJOR == 7
             uint16_t tabcount = lv_tabview_get_tab_count(child);
             for(uint16_t i = 0; i < tabcount; i++) {
                 lv_obj_t * tab = lv_tabview_get_tab(child, i);
                 Log.verbose(TAG_HASP, "Found tab %i", i);
-               // if(tab->user_data && (lv_obj_user_data_t)objid == tab->user_data) return tab; /* tab found, return it */
+                if(tab->user_data.objid && objid == tab->user_data.objid) return tab; /* tab found, return it */
 
                 /* check grandchildren */
                 grandchild = hasp_find_obj_from_parent_id(tab, objid);
                 if(grandchild) return grandchild; /* grandchild found, return it */
             }
-#endif
+            //#endif
         }
 
         /* try next sibling */
@@ -76,7 +70,7 @@ lv_obj_t * hasp_find_obj_from_parent_id(lv_obj_t * parent, uint8_t objid)
 
 bool hasp_find_id_from_obj(lv_obj_t * obj, uint8_t * pageid, uint8_t * objid)
 {
-   // if(!get_page_id(obj, pageid)) return false;
+    if(!get_page_id(obj, pageid)) return false;
     if(!(obj->user_data.id > 0)) return false;
     //    memcpy(objid, &obj->user_data.id, sizeof(lv_obj_user_data_t));
     *objid = obj->user_data.id;
@@ -166,15 +160,19 @@ bool check_obj_type_str(const char * lvobjtype, lv_hasp_obj_type_t haspobjtype)
  */
 bool check_obj_type(lv_obj_t * obj, lv_hasp_obj_type_t haspobjtype)
 {
+#if 1
+    return obj->user_data.objid == (uint8_t)haspobjtype;
+#else
     lv_obj_type_t list;
     lv_obj_get_type(obj, &list);
     const char * objtype = list.type[0];
-    return check_obj_type_str(objtype, haspobjtype);
+    return check_obj_type(objtype, haspobjtype);
+#endif
 }
 
 void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level)
 {
-    if(parent == NULL) return;
+    if(parent == nullptr) return;
 
     /* Output parent info */
     lv_obj_type_t list;
@@ -194,12 +192,12 @@ void hasp_object_tree(lv_obj_t * parent, uint8_t pageid, uint16_t level)
 
     /* check tabs */
     if(check_obj_type(parent, LV_HASP_TABVIEW)) {
-#if LVGL_VERSION_MAJOR == 7
+#if 1
         uint16_t tabcount = lv_tabview_get_tab_count(parent);
         for(uint16_t i = 0; i < tabcount; i++) {
             lv_obj_t * tab = lv_tabview_get_tab(child, i);
             Log.verbose(TAG_HASP, "Found tab %i", i);
-           // if(tab->user_data) hasp_object_tree(tab, pageid, level + 1);
+            if(tab->user_data.objid) hasp_object_tree(tab, pageid, level + 1);
         }
 #endif
     }
@@ -213,7 +211,7 @@ void hasp_send_obj_attribute_str(lv_obj_t * obj, const char * attribute, const c
     uint8_t objid;
 
     if(hasp_find_id_from_obj(obj, &pageid, &objid)) {
-       // dispatch_send_obj_attribute_str(pageid, objid, attribute, data);
+        dispatch_send_obj_attribute_str(pageid, objid, attribute, data);
     }
 }
 
@@ -300,7 +298,7 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             return;
 
         case LV_EVENT_VALUE_CHANGED:
-            //Log.warning(TAG_HASP, F("Value changed Event %d occured"), event);
+            Log.warning(TAG_HASP, F("Value changed Event %d occured"), event);
             return;
 
         case LV_EVENT_DELETE:
@@ -308,12 +306,12 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
             // TODO:free and destroy persistent memory allocated for certain objects
             return;
         default:
-            //Log.warning(TAG_HASP, F("Unknown Event %d occured"), event);
+            Log.warning(TAG_HASP, F("Unknown Event %d occured"), event);
             return;
     }
 
-    //guiCheckSleep(); // wakeup?
-   // dispatch_send_object_event(haspGetPage(), (uint8_t)obj->user_data.id, eventid);
+    hasp_update_sleep_state();                          // wakeup?
+    dispatch_object_event(obj, eventid); // send object event
 }
 
 /**
@@ -324,7 +322,7 @@ void IRAM_ATTR btn_event_handler(lv_obj_t * obj, lv_event_t event)
 void wakeup_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(obj == lv_disp_get_layer_sys(NULL)) {
-        //guiCheckSleep();              // wakeup?
+        hasp_update_sleep_state();              // wakeup?
         lv_obj_set_click(obj, false); // disable fist click
     }
 }
@@ -337,7 +335,7 @@ void wakeup_event_handler(lv_obj_t * obj, lv_event_t event)
 static void btnmap_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        //guiCheckSleep(); // wakeup?
+        hasp_update_sleep_state(); // wakeup?
         hasp_send_obj_attribute_val(obj, lv_btnmatrix_get_active_btn(obj));
     }
 }
@@ -350,7 +348,7 @@ static void btnmap_event_handler(lv_obj_t * obj, lv_event_t event)
 static void table_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        //guiCheckSleep(); // wakeup?
+        hasp_update_sleep_state(); // wakeup?
 
         uint16_t row;
         uint16_t col;
@@ -366,7 +364,7 @@ static void table_event_handler(lv_obj_t * obj, lv_event_t event)
 void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        //guiCheckSleep(); // wakeup?
+        hasp_update_sleep_state(); // wakeup?
         hasp_send_obj_attribute_val(obj, lv_checkbox_is_checked(obj));
     }
 }
@@ -379,7 +377,7 @@ void IRAM_ATTR toggle_event_handler(lv_obj_t * obj, lv_event_t event)
 static void switch_event_handler(lv_obj_t * obj, lv_event_t event)
 {
     if(event == LV_EVENT_VALUE_CHANGED) {
-        //guiCheckSleep(); // wakeup?
+        hasp_update_sleep_state(); // wakeup?
         hasp_send_obj_attribute_val(obj, lv_switch_get_state(obj));
     }
 }
@@ -447,50 +445,36 @@ static void roller_event_handler(lv_obj_t * obj, lv_event_t event)
     }
 }
 
+// ##################### State Changers ########################################################
+
+// TODO make this a recursive function that goes over all objects only ONCE
+void object_set_group_state(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj)
+{
+    bool state = dispatch_get_event_state(eventid);
+    for(uint8_t page = 0; page < HASP_NUM_PAGES; page++) {
+        uint8_t startid = 100 + groupid * 10; // groups start at id 100
+        for(uint8_t objid = startid; objid < (startid + 10); objid++) {
+            lv_obj_t * obj = hasp_find_obj_from_parent_id(get_page_obj(page), objid);
+            if(obj && obj != src_obj) { // skip source object, if set
+                lv_obj_set_state(obj, state ? LV_STATE_PRESSED | LV_STATE_CHECKED : LV_STATE_DEFAULT);
+            }
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Used in the dispatcher & hasp_new_object
 void hasp_process_attribute(uint8_t pageid, uint8_t objid, const char * attr, const char * payload)
 {
-    lv_obj_t* obj;
-    if (obj = hasp_find_obj_from_parent_id(get_page_obj(pageid), objid)) {
-            hasp_process_obj_attribute(obj, attr, payload, strlen(payload) > 0);
+    if(lv_obj_t * obj = hasp_find_obj_from_parent_id(get_page_obj(pageid), objid)) {
+        hasp_process_obj_attribute(obj, attr, payload, strlen(payload) > 0);
     } else {
-        //Log.warning(TAG_HASP, F("Unknown object p[%d].b[%d]"), pageid, objid);
+        Log.warning(TAG_HASP, F("Unknown object p[%d].b[%d]"), pageid, objid);
     }
 }
 
-#include<iostream>
-#include<fstream>
-#include<sstream>
-#include<string>
-using namespace std;
-
-void testparse() {
-    // const char payload[] = "{\"objid\":10,\"id\":1,\"x\":10,\"y\":45,\"w\":500,\"h\":200,\"toggle\":\"TRUE\",\"txt\":\"Push Me \\uf0a6\"}";
-    /*size_t maxsize = (128u * ((strlen(payload) / 128) + 1)) + 256;
-    DynamicJsonDocument json(maxsize);
-    DeserializationError jsonError = deserializeJson(json, payload);
-    uint8_t savedPage = 0;
-    hasp_new_object(json.as<JsonObject>(), savedPage);*/
-
-
-    ifstream f("C:\\users\\fvanroie\\Documents\\pages.jsonl.txt"); //taking file as inputstream
-    if (f) {
-        size_t line = 1;
-        uint8_t page = haspGetPage();
-        DynamicJsonDocument jsonl(8 * 128u); // max ~256 characters per line
-        DeserializationError err = deserializeJson(jsonl, f);
-
-        while (err == DeserializationError::Ok) {
-            hasp_new_object(jsonl.as<JsonObject>(), page);
-            err = deserializeJson(jsonl, f);
-            line++;
-        }
-    }
-}
-
-// ##################### Obhject Creator ########################################################
+// ##################### Object Creator ########################################################
 
 /**
  * Create a new object according to the json config
@@ -505,9 +489,9 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     uint8_t pageid = config[F("page")].isNull() ? saved_page_id : config[F("page")].as<uint8_t>();
 
     /* Page selection */
-    lv_obj_t* page=  get_page_obj(pageid);
+    lv_obj_t * page = get_page_obj(pageid);
     if(!page) {
-        return; //Log.warning(TAG_HASP, F("Page ID %u not defined"), pageid);
+        return Log.warning(TAG_HASP, F("Page ID %u not defined"), pageid);
     } else {
         saved_page_id = pageid; /* save the current pageid */
     }
@@ -520,7 +504,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
         uint8_t parentid = config[F("parentid")].as<uint8_t>();
         parent_obj       = hasp_find_obj_from_parent_id(page, parentid);
         if(!parent_obj) {
-            return; //Log.warning(TAG_HASP, F("Parent ID p[%u].b[%u] not found, skipping..."), pageid, parentid);
+            return Log.warning(TAG_HASP, F("Parent ID p[%u].b[%u] not found, skipping..."), pageid, parentid);
             // parent_obj = page; // don't create on the page instead ??
         } else {
             Log.verbose(TAG_HASP, F("Parent ID p[%u].b[%u] found"), pageid, parentid);
@@ -534,7 +518,7 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     /* Define Objects*/
     lv_obj_t * obj = hasp_find_obj_from_parent_id(parent_obj, id);
     if(obj) {
-        return; //Log.warning(TAG_HASP, F("Object ID %u already exists!"), id);
+        return Log.warning(TAG_HASP, F("Object ID %u already exists!"), id);
     }
 
     switch(objid) {
@@ -552,7 +536,11 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             obj = lv_btn_create(parent_obj, NULL);
             if(obj) {
                 lv_obj_t * lbl = lv_label_create(obj, NULL);
-                if(lbl) lv_label_set_text(lbl, "");
+                if(lbl) {
+                    lv_label_set_text(lbl, "");
+                    lbl->user_data.objid = LV_HASP_LABEL;
+                    lv_obj_align(lbl, NULL, LV_ALIGN_CENTER, 0, 0);
+                }
                 lv_obj_set_event_cb(obj, btn_event_handler);
             }
             break;
@@ -650,12 +638,12 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
             // No event handler for tabs
             if(obj) {
                 lv_obj_t * tab;
-               /* tab = lv_tabview_add_tab(obj, "tab 1");
-                lv_obj_set_user_data(tab, id + 1);
+                tab = lv_tabview_add_tab(obj, "tab 1");
+                // lv_obj_set_user_data(tab, id + 1);
                 tab = lv_tabview_add_tab(obj, "tab 2");
-                lv_obj_set_user_data(tab, id + 2);
+                // lv_obj_set_user_data(tab, id + 2);
                 tab = lv_tabview_add_tab(obj, "tab 3");
-                lv_obj_set_user_data(tab, id + 3); */
+                // lv_obj_set_user_data(tab, id + 3);
             }
             break;
         }
@@ -675,10 +663,10 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
 #endif
         /* ----- Range Objects ------ */
         case LV_HASP_SLIDER: {
-             obj = lv_slider_create(parent_obj, NULL);
+            obj = lv_slider_create(parent_obj, NULL);
             if(obj) {
-           //     lv_slider_set_range(obj, 0, 100);
-            //    lv_obj_set_event_cb(obj, slider_event_handler);
+                lv_slider_set_range(obj, 0, 100);
+                lv_obj_set_event_cb(obj, slider_event_handler);
             }
             // bool knobin = config[F("knobin")].as<bool>() | true;
             // lv_slider_set_knob_in(obj, knobin);
@@ -718,11 +706,11 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
                 lv_chart_add_series(obj, LV_COLOR_GREEN);
                 lv_chart_add_series(obj, LV_COLOR_BLUE);
 
-              /* lv_chart_series_t * ser = lv_chart_get_series(obj, 2);
+                lv_chart_series_t * ser = lv_chart_get_series(obj, 2);
                 lv_chart_set_next(obj, ser, 10);
                 lv_chart_set_next(obj, ser, 20);
                 lv_chart_set_next(obj, ser, 30);
-                lv_chart_set_next(obj, ser, 40); */
+                lv_chart_set_next(obj, ser, 40);
             }
             break;
         }
@@ -757,39 +745,38 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
 
             /* ----- Other Object ------ */
             // default:
-            //    return; //Log.warning(TAG_HASP, F("Unsupported Object ID %u"), objid);
+            //    return Log.warning(TAG_HASP, F("Unsupported Object ID %u"), objid);
     }
 
     /* No object was actually created */
     if(!obj) {
-        return; //Log.warning(TAG_HASP, F("Object ID %u is NULL, skipping..."), id);
+        return Log.warning(TAG_HASP, F("Object ID %u is NULL, skipping..."), id);
     }
 
     /* id tag the object */
     // lv_obj_set_user_data(obj, id);
     obj->user_data.id      = id;
-    obj->user_data.objid   = (uint8_t)(objid & 0b11111);
-    obj->user_data.groupid = (uint8_t)(groupid & 0b111);
+    obj->user_data.objid   = objid;   //& 0b11111;
+    obj->user_data.groupid = groupid; // & 0b111;
 
     /* do not process these attributes */
     config.remove(F("page"));
     config.remove(F("id"));
     config.remove(F("objid"));
     config.remove(F("parentid"));
-    std::string v;//((char*)0);
+    String v((char *)0);
     v.reserve(64);
 
-    for(ArduinoJson::JsonPair keyValue : config) {
-        v = keyValue.value().as<std::string>();
-         hasp_process_obj_attribute(obj, keyValue.key().c_str(), v.c_str(), true);
-        // OutputDebugStringA(keyValue.key().c_str());
-         Log.verbose(TAG_HASP,F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
+    for(JsonPair keyValue : config) {
+        v = keyValue.value().as<String>();
+        hasp_process_obj_attribute(obj, keyValue.key().c_str(), v.c_str(), true);
+        // Log.verbose(TAG_HASP,F("     * %s => %s"), keyValue.key().c_str(), v.c_str());
     }
 
     /** testing start **/
     uint8_t temp;
     if(!hasp_find_id_from_obj(obj, &pageid, &temp)) {
-        return; //Log.error(TAG_HASP, F("Lost track of the created object, not found!"));
+        return Log.error(TAG_HASP, F("Lost track of the created object, not found!"));
     }
 
     /** verbose reporting **/
@@ -798,8 +785,8 @@ void hasp_new_object(const JsonObject & config, uint8_t & saved_page_id)
     Log.verbose(TAG_HASP, F("    * p[%u].b[%u] = %s"), pageid, temp, list.type[0]);
 
     /* test double-check */
-    lv_obj_t* test=NULL;// = hasp_find_obj_from_parent_id(get_page_obj(pageid), (uint8_t)temp);
+    lv_obj_t * test = hasp_find_obj_from_parent_id(get_page_obj(pageid), (uint8_t)temp);
     if(test != obj) {
-        return; //Log.error(TAG_HASP, F("Objects DO NOT match!"));
+        return Log.error(TAG_HASP, F("Objects DO NOT match!"));
     }
 }

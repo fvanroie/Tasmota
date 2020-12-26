@@ -4,11 +4,13 @@
 #ifndef HASP_H
 #define HASP_H
 
-//#include <Arduino.h>
-#include "ArduinoJson.h"
+#include <Arduino.h>
 #include "lvgl.h"
 #include "hasp_conf.h"
-//#include "hasp_debug.h"
+
+#if HASP_USE_DEBUG > 0
+#include "../hasp_debug.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,10 +20,14 @@ extern "C" {
  *      INCLUDES
  *********************/
 
+#if HASP_USE_APP > 0
+
 /*********************
  *      DEFINES
  *********************/
-#define TAG_HASP 1
+#define HASP_SLEEP_OFF 0
+#define HASP_SLEEP_SHORT 1
+#define HASP_SLEEP_LONG 2
 
 /**********************
  *      TYPEDEFS
@@ -34,8 +40,10 @@ extern "C" {
 /**
  * Create a hasp application
  */
-void haspSetup();
+void haspSetup(void);
 void IRAM_ATTR haspLoop(void);
+//void haspEverySecond(void); // See MACROS
+
 void haspReconnect(void);
 void haspDisconnect(void);
 
@@ -47,23 +55,28 @@ uint8_t haspGetPage();
 void haspClearPage(uint16_t pageid);
 
 void haspGetVersion(char* version,size_t len);
-void haspBackground(uint16_t pageid, uint16_t imageid);
-
-void hasp_set_group_objects(uint8_t groupid, uint8_t eventid, lv_obj_t * src_obj);
+//void haspBackground(uint16_t pageid, uint16_t imageid);
 
 // void haspNewObject(const JsonObject & config, uint8_t & saved_page_id);
 
-void haspWakeUp(void);
 void haspProgressVal(uint8_t val);
 
+#if HASP_USE_CONFIG > 0
 bool haspGetConfig(const JsonObject & settings);
 bool haspSetConfig(const JsonObject & settings);
+#endif
 
 lv_font_t * hasp_get_font(uint8_t fontid);
+
+bool IRAM_ATTR hasp_update_sleep_state();
+void hasp_wakeup(void);
 
 /**********************
  *      MACROS
  **********************/
+#define haspEverySecond hasp_update_sleep_state
+
+#endif /*HASP_USE_APP*/
 
 #ifdef __cplusplus
 } /* extern "C" */
