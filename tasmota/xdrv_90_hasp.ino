@@ -1312,7 +1312,11 @@ static lv_obj_t * spinner;
 
 void HaspInitDriver(void)
 {
-  AddLog_P(LOG_LEVEL_INFO, PSTR("HSP: Init Driver"));
+    if (Settings.display_model != 4 || Settings.display_mode != 0) {
+    return;
+  }
+
+  AddLog_P(LOG_LEVEL_INFO, PSTR("HSP: Init Hasp Driver"));
   XdspCall(FUNC_DISPLAY_INIT_DRIVER);
 
       /* Initialize the Virtual Device Buffers */
