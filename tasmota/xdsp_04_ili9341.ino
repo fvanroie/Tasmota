@@ -109,8 +109,8 @@ void Ili9341InitDriver(void)
       Settings.display_height = ILI9341_TFTHEIGHT;
     }
 
-    tft = new Adafruit_ILI9341(Pin(GPIO_SPI_CS), Pin(GPIO_SPI_DC));
-    tft->begin();
+    tft = new Adafruit_ILI9341(14, 27,  33);
+    tft->begin(40000000);
 
 #ifdef USE_DISPLAY_MODES1TO5
     if (Settings.display_rotate) {
@@ -298,9 +298,20 @@ bool Xdsp04(uint8_t function)
         case FUNC_DISPLAY_FILL_RECTANGLE:
           tft->fillRect(dsp_x, dsp_y, dsp_x2, dsp_y2, dsp_color);
           break;
-//        case FUNC_DISPLAY_DRAW_FRAME:
-//          oled->display();
-//          break;
+        case FUNC_DISPLAY_DRAW_FRAME:
+          /* Update TFT */
+          tft->startWrite();                                      /* Start new TFT transaction */
+          if(hasp_color_p && hasp_area_p) {
+            tft->setAddrWindow(hasp_area_p->x1, hasp_area_p->y1, hasp_area_p->x2-hasp_area_p->x1+1, hasp_area_p->y2-hasp_area_p->y1+1); /* set the working window */
+            tft->writePixels(hasp_color_p,lv_area_get_size(hasp_area_p));
+          }
+          //while (len>1) {SPI_WRITE16(*hasp_color_p); hasp_color_p++; SPI_WRITE16(*hasp_color_p); hasp_color_p++; len -=2;}
+          //if (len) {SPI_WRITE16(*hasp_color_p);}
+
+          tft->endWrite(); /* terminate TFT transaction */
+          //AddLog_P(LOG_LEVEL_INFO, PSTR("HSP: Flush Buffer OK x1: %d  y1: %d  x2: %d  y2: %d "),hasp_area_p->x1,hasp_area_p->y1,hasp_area_p->x2,hasp_area_p->y2);
+
+          break;
         case FUNC_DISPLAY_TEXT_SIZE:
           tft->setTextSize(Settings.display_size);
           break;
