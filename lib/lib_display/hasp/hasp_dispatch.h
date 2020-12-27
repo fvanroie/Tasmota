@@ -6,6 +6,8 @@
 
 #include "ArduinoJson.h"
 #include "lvgl.h"
+#include <iostream>
+#include <sstream>
 
 enum hasp_event_t { // even = released, odd = pressed
     HASP_EVENT_OFF  = 0,

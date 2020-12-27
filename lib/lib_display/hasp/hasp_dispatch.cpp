@@ -1,10 +1,7 @@
 /* MIT License - Copyright (c) 2020 Francis Van Roie
    For full license information read the LICENSE file in the project folder */
 
-// #include "StringStream.h"
-// #include "CharStream.h"
-#include <iostream>
-#include <sstream>
+#include "CharStream.h"
 
 #include "hasp_conf.h"
 
@@ -13,6 +10,8 @@
 #include "hasp.h"
 
 #if HASP_USE_DEBUG > 0
+#include "StringStream.h"
+
 #include "hasp_debug.h"
 #include "hasp_gui.h"
 #include "hasp_oobe.h"
@@ -562,7 +561,7 @@ void dispatch_parse_json(const char *, const char *payload)
     }
 }
 
-void dispatch_parse_jsonl(std::istringstream & stream)
+void dispatch_parse_jsonl(Stream &stream)
 {
     uint8_t savedPage = haspGetPage();
     size_t line = 1;
@@ -603,7 +602,7 @@ void dispatch_parse_jsonl(std::istringstream & stream)
 
 void dispatch_parse_jsonl(const char *, const char *payload)
 {
-    std::istringstream stream((char *)payload);
+    CharStream stream((char *)payload);
     dispatch_parse_jsonl(stream);
 }
 
