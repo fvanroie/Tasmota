@@ -376,7 +376,7 @@ void haspSetup(void)
 
 #if(LV_USE_THEME_MONO == 1)
         case 3:
-            th = lv_theme_mono_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAGS, haspFonts[0], haspFonts[1],
+            th = lv_theme_mono_init(LV_COLOR_PURPLE, LV_COLOR_BLACK, LV_THEME_DEFAULT_FLAG, haspFonts[0], haspFonts[1],
                                     haspFonts[2], haspFonts[3]);
             break;
 #endif

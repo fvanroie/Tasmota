@@ -1503,7 +1503,7 @@ static void ICACHE_RAM_ATTR lv_tick_handler(void)
 }
 */
 
-void guiStart()
+void HaspStart()
 {
   /*Initialize the graphics library's tick*/
 #if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP8266)
@@ -1551,7 +1551,7 @@ void HaspInitDriver(void)
   disp_drv.hor_res = 240;
   disp_drv.ver_res = 320;
   lv_disp_drv_register(&disp_drv);
-  guiStart();
+  HaspStart();
 
   /* Initialize Global progress bar*/
   bar = lv_bar_create(lv_layer_sys(), NULL);

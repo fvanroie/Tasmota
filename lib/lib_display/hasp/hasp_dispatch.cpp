@@ -562,7 +562,7 @@ void dispatch_parse_json(const char *, const char *payload)
     }
 }
 
-void dispatch_parse_jsonl(Stream &stream)
+void dispatch_parse_jsonl(std::istringstream & stream)
 {
     uint8_t savedPage = haspGetPage();
     size_t line = 1;
@@ -603,7 +603,7 @@ void dispatch_parse_jsonl(Stream &stream)
 
 void dispatch_parse_jsonl(const char *, const char *payload)
 {
-    CharStream stream((char *)payload);
+    std::istringstream stream((char *)payload);
     dispatch_parse_jsonl(stream);
 }
 
@@ -710,7 +710,9 @@ void dispatch_reboot(bool saveConfig)
 #if HASP_USE_MQTT > 0
     mqttStop(); // Stop the MQTT Client first
 #endif
+#if HASP_USE_CONFIG > 0
     debugStop();
+#endif
 #if HASP_USE_WIFI > 0
     wifiStop();
 #endif
